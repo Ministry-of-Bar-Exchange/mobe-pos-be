@@ -17,8 +17,9 @@ export class CategoryService {
     return allcategories.data.data;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: number) {
+    const singleCategory: any = await this.cmsservice.passthruGet('/categories/' + id);
+    return singleCategory.data.data;
   }
 
   update(id: number, updateCategoryDto: UpdateCategoryDto) {

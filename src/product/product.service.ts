@@ -17,8 +17,9 @@ export class ProductService {
     return allProducts.data.data;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: number) {
+    const singleProduct: any = await this.cmsservice.passthruGet('/products/' + id + '?populate=*');
+    return singleProduct.data.data;
   }
 
   update(id: number, updateProductDto: UpdateProductDto) {
