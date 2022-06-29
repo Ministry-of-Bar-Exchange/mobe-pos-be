@@ -13,7 +13,7 @@ export class ProductService {
   }
 
   async findAll() {
-    const allProducts: any = await this.cmsservice.passthruGet('/products');
+    const allProducts: any = await this.cmsservice.passthruGet('/products?populate=*');
     return allProducts.data.data;
   }
 
