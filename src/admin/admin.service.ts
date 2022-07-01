@@ -11,7 +11,7 @@ import { AdminModule } from './admin.module';
 export class AdminService {
   constructor(
     @InjectModel(Admin.name) private adminModel: Model<AdminDocument>,
-  ) {}
+  ) { }
 
   async create(createAdminDto: CreateAdminDto) {
     const { email, password, name } = createAdminDto;
@@ -44,10 +44,10 @@ export class AdminService {
           .findOneAndUpdate(filter, update)
           .exec();
       }
-      console.log('SSSSS ==> ', loginSuccess);
+      //   console.log('SSSSS ==> ', loginSuccess);
       return loginSuccess;
     } else {
-      console.log('ERORR IN JWT');
+      //  console.log('ERORR IN JWT');
     }
   }
 

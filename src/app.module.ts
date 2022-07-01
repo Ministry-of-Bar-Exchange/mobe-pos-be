@@ -7,6 +7,7 @@ import { CmsModule } from './cms/cms.module';
 import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
 import { AdminModule } from './admin/admin.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AdminModule } from './admin/admin.module';
         uri: process.env.MONGODB_URL,
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        autoIndex: true,
       }),
     }),
     ConfigModule.forRoot(),
@@ -23,8 +25,9 @@ import { AdminModule } from './admin/admin.module';
     ProductModule,
     CategoryModule,
     AdminModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
