@@ -35,7 +35,7 @@ export class ProductsController {
     return this.productsService.getAllItems();
   }
 
-  @Get(':id')
+  @Get(":id")
   readCategory(@Param("id") id: string) {
     return this.productsService.read(id);
   }

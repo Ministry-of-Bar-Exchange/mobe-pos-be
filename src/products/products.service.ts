@@ -47,7 +47,9 @@ export class ProductsService {
   async handleItemsUpload(csvData: { [key: string]: string }[] = []) {
     const categoryData = csvData?.map((rowData: { [key: string]: string }) => ({
       name: rowData?.category.toLowerCase(),
-      tax: replaceSpecialCharsFromTax(rowData?.["tax"]?.split(" ")?.[1]) || COMMON_TAX,
+      tax:
+        replaceSpecialCharsFromTax(rowData?.["tax"]?.split(" ")?.[1]) ||
+        COMMON_TAX,
     }));
 
     const filteredCategory = categoryData.filter((category, index) => {
@@ -109,6 +111,11 @@ export class ProductsService {
   async getAllItems() {
     try {
       const products = await this.prisma.products.findMany({
+        where: {
+          isDeleted: {
+            equals: false,
+          },
+        },
         orderBy: {
           updatedAt: "desc",
         },
