@@ -15,11 +15,8 @@ export class ProductsService {
     private subCategoryService: SubCategoryService
   ) {}
 
-  async createOneItem(itemData) {
-    const itemPriceCalculate =
-      parseInt(itemData?.amount) / parseInt(itemData?.quantity);
-    itemData.price = itemPriceCalculate.toString();
-    itemData.quantity = Number(itemData.quantity);
+  async createProduct(itemData) {
+    itemData.quantity = Number(itemData.quantity || 0);
 
     try {
       const response = await this.prisma.products.create({
@@ -27,7 +24,7 @@ export class ProductsService {
       });
       return response;
     } catch (error) {
-      console.debug(error, "\n cannot create OneItem \n");
+      console.debug(error, "\n cannot create product \n");
       return error;
     }
   }

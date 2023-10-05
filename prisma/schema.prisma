@@ -53,9 +53,12 @@ model Subcategory {
 model Products {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
   name          String      @unique
-  measuredIn    String?
+  measuredIn    String?     @default("")
   price         String
   code          String
+  tax           String?
+  taxType       String?
+  quantity      Int         @default(0)
   category      Category    @relation(fields: [categoryId], references: [id])
   categoryId    String      @db.ObjectId
   subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])

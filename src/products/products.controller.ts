@@ -42,8 +42,8 @@ export class ProductsController {
 
   @Public()
   @Post()
-  createOneItem(@Body() createItemDto: CreateItemDto) {
-    return this.productsService.createOneItem(createItemDto);
+  createProduct(@Body() createItemDto: CreateItemDto) {
+    return this.productsService.createProduct(createItemDto);
   }
 
   @Patch(":id")

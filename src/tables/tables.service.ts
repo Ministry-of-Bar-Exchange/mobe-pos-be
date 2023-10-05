@@ -10,7 +10,17 @@ export class TablesService {
     return this.prisma.tables.create({ data: createTableDto });
   }
 
-  findAll() {
+  async findAll() {
+
+    // const multiTables :any=( new Array(50).fill(null).map((info, index) => ({
+    //   code: `${index + 1}`
+    // })));
+
+    // multiTables.splice(12, 1);
+  
+    // await this.prisma.tables.createMany({
+    //   data: multiTables
+    // });
     return this.prisma.tables.findMany({});
   }
 
