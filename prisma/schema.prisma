@@ -66,20 +66,19 @@ model Products {
   isDeleted     Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  OrderItem     OrderItem[]
 }
 
 model Billing {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   phone     String
-  itemList  OrderItem[]
-  status    String      @default("void")
-  tableId   String      @db.ObjectId
-  table     Tables      @relation(fields: [tableId], references: [id])
-  isDeleted Boolean     @default(false)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  itemList  Kot[]
+  status    BillStatus @default(UNSETTLED)
+  tableId   String     @db.ObjectId
+  table     Tables     @relation(fields: [tableId], references: [id])
+  isDeleted Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Tables {
@@ -91,14 +90,43 @@ model Tables {
   updatedAt DateTime  @updatedAt
 }
 
+// just to resolve errors -- no need for orderItem in case Kot works
 model OrderItem {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   quantity  Int
   productId String   @db.ObjectId
-  product   Products @relation(fields: [productId], references: [id])
+  // product   Products @relation(fields: [productId], references: [id])
   billingId String?  @db.ObjectId
-  Billing   Billing? @relation(fields: [billingId], references: [id])
+  // Billing   Billing? @relation(fields: [billingId], references: [id])
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Kot {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  status    KotStatus @default(ORDER_CONFIRMED)
+  kotData   KotItem[]
+  billingId String    @db.ObjectId
+  Billing   Billing   @relation(fields: [billingId], references: [id])
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+type KotItem {
+  productId String @db.ObjectId
+  quantity  Int
+}
+
+enum BillStatus {
+  UNSETTLED
+  SETTLED
+  VOID
+  COMPLEMENTORY
+}
+
+enum KotStatus {
+  ORDER_CONFIRMED
+  ORDER_CANCELED
 }
