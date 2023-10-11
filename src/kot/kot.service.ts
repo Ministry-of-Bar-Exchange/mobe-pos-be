@@ -8,7 +8,6 @@ export class KotService {
   constructor(private prisma: PrismaService) {}
 
   async createKot(itemData: Kot) {
-
     try {
       const response = await this.prisma.kot.create({
         data: itemData,
@@ -31,6 +30,32 @@ export class KotService {
         orderBy: {
           updatedAt: "desc",
         },
+        include: {
+          billing: true,
+        },
+      });
+
+      return kot;
+    } catch (err) {
+      console.debug(err, "Cannot get all kot");
+    }
+  }
+
+  async getKotForBillingId(billingId: string) {
+    try {
+      const kot = await this.prisma.kot.findMany({
+        where: {
+          isDeleted: {
+            equals: false,
+          },
+          billingId
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+        include: {
+          billing: true,
+        },
       });
 
       return kot;
@@ -44,6 +69,9 @@ export class KotService {
       const response = await this.prisma.kot.findUnique({
         where: {
           id,
+        },
+        include: {
+          billing: true,
         },
       });
       return response;
@@ -66,6 +94,7 @@ export class KotService {
   }
 
   async updateItem(itemId: string, KotDto: Partial<Kot>) {
+    console.debug('kot', KotDto);
     try {
       const response = await this.prisma.kot.update({
         where: {

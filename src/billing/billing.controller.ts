@@ -29,6 +29,14 @@ export class BillingController {
     return this.billingService.findOne(id);
   }
 
+  @Post("print/:id")
+  handlePrintBill(
+    @Param("id") id: string,
+    @Body() updateBillingDto: Partial<Billing>
+  ) {
+    return this.billingService.handlePrintBill(id, updateBillingDto);
+  }
+
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateBillingDto: Partial<Billing>) {
     return this.billingService.update(id, updateBillingDto);
