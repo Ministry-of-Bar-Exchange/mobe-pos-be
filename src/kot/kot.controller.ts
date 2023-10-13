@@ -23,6 +23,11 @@ export class KotController {
   readCategory(@Param("id") id: string) {
     return this.kotService.read(id);
   }
+  
+  @Get("table/:code")
+  readKotByTableCode(@Param("code") code: string) {
+    return this.kotService.readByTableCode(code);
+  }
 
   @Post()
   createKot(@Body() createItemDto: Kot) {

@@ -93,19 +93,7 @@ model Tables {
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-}
-
-// just to resolve errors -- no need for orderItem in case Kot works
-model OrderItem {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  quantity  Int
-  productId String   @db.ObjectId
-  // product   Products @relation(fields: [productId], references: [id])
-  billingId String?  @db.ObjectId
-  // Billing   Billing? @relation(fields: [billingId], references: [id])
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  Kot       Kot[]
 }
 
 model Kot {
@@ -114,6 +102,8 @@ model Kot {
   kotData   KotItem[]
   billingId String?   @db.ObjectId
   billing   Billing?  @relation(fields: [billingId], references: [id])
+  tableId   String?   @db.ObjectId
+  table     Tables?   @relation(fields: [tableId], references: [id])
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

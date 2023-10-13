@@ -2,10 +2,14 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "prisma/prisma.service";
 import { KotDto } from "./dto/update-item.dto";
 import { Kot } from "@prisma/client";
+import { ProductsService } from "products/products.service";
 
 @Injectable()
 export class KotService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private productService: ProductsService
+  ) {}
 
   async createKot(itemData: Kot) {
     try {
@@ -48,7 +52,7 @@ export class KotService {
           isDeleted: {
             equals: false,
           },
-          billingId
+          billingId,
         },
         orderBy: {
           updatedAt: "desc",
@@ -80,6 +84,25 @@ export class KotService {
     }
   }
 
+  async readByTableCode(code: string) {
+    try {
+      const response = await this.prisma.kot.findFirst({
+        include: {
+          billing: true,
+          table: true,
+        },
+        where: {
+          table: {
+            code,
+          },
+        },
+      });
+      return response;
+    } catch (err) {
+      console.debug(err, "Could not find kot");
+    }
+  }
+
   async findOneItem(itemId: string) {
     try {
       const response = await this.prisma.kot.findMany({
@@ -93,8 +116,73 @@ export class KotService {
     }
   }
 
+  async getProductListFromKotId(kotId: string) {
+    const KotData = await this.read(kotId);
+    const list = await this.addProductsDataInKotInfo([KotData]);
+    return list;
+  }
+
+  async getProductListFromBillingId(billingId: string) {
+    const KotDataForBill = await this.getKotForBillingId(billingId);
+    const list = await this.addProductsDataInKotInfo(KotDataForBill);
+    return list;
+  }
+
+  async addProductsDataInKotInfo(KotListForBillId: Kot[]) {
+    let productsOrdered = [];
+
+    KotListForBillId.forEach((kot) => {
+      const hasKotProductsLength = kot.kotData?.length;
+      if (hasKotProductsLength) {
+        productsOrdered = [...productsOrdered, ...kot?.kotData];
+      }
+    });
+
+    let filteredProductsOrdered = [];
+    productsOrdered.forEach((orderItem) => {
+      const alreadyPresent = filteredProductsOrdered?.findIndex(
+        (productOrdered) => productOrdered.productId === orderItem.productId
+      );
+
+      if (alreadyPresent > -1) {
+        filteredProductsOrdered.splice(alreadyPresent, 1, {
+          ...filteredProductsOrdered[alreadyPresent],
+          quantity:
+            orderItem?.quantity +
+            filteredProductsOrdered[alreadyPresent]?.quantity,
+        });
+      } else {
+        filteredProductsOrdered.push(orderItem);
+      }
+    });
+
+    const productsIds = filteredProductsOrdered?.map(
+      (product) => product.productId
+    );
+
+    const products = await this.productService.getProductsFromIdsArray(
+      productsIds
+    );
+
+    const list = filteredProductsOrdered?.map((info) => {
+      const productData = products?.find(
+        (product) => product.id === info.productId
+      );
+
+      const amount = Number(info?.quantity) * Number(productData?.price);
+
+      return {
+        ...info,
+        product: productData,
+        amount,
+      };
+    });
+
+    return list;
+  }
+
   async updateItem(itemId: string, KotDto: Partial<Kot>) {
-    console.debug('kot', KotDto);
+    console.debug("kot", KotDto);
     try {
       const response = await this.prisma.kot.update({
         where: {

@@ -29,6 +29,11 @@ export class BillingController {
     return this.billingService.findOne(id);
   }
 
+  @Get("table-code/:code")
+  findBillFromTableCode(@Param("code") code: string) {
+    return this.billingService.findBillFromTableCode(code);
+  }
+
   @Post("print/:id")
   handlePrintBill(
     @Param("id") id: string,

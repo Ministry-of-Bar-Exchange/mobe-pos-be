@@ -13,7 +13,6 @@ import { SubCategoryModule } from "./sub-category/sub-category.module";
 import { AuthModule } from "Auth/auth.module";
 import { BillingModule } from './billing/billing.module';
 import { TablesModule } from './tables/tables.module';
-import { OrderModule } from "orderItem/orderItem.module";
 import { KotModule } from "kot/kot.module";
 
 @Module({
@@ -58,8 +57,7 @@ import { KotModule } from "kot/kot.module";
     CategoryModule,
     SubCategoryModule,
     BillingModule,
-    TablesModule,
-    OrderModule,
+    TablesModule
   ],
   controllers: [],
 })
