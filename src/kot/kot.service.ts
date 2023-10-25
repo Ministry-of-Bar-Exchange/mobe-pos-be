@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
+import { Kot, KotItem } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
-import { KotDto } from "./dto/update-item.dto";
-import { Kot } from "@prisma/client";
+
 import { ProductsService } from "products/products.service";
 
 @Injectable()
@@ -13,6 +13,48 @@ export class KotService {
 
   async createKot(itemData: Kot) {
     try {
+      const billingId = itemData?.billingId;
+
+      const kotList: Kot[] = await this.prisma.kot.findMany({
+        where: {
+          isDeleted: {
+            equals: false,
+          },
+          billingId,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+      });
+
+      const kotPayload = [];
+
+      itemData?.kotData.forEach((kotItem: KotItem) => {
+        const productOrderedBefore = kotList.find(
+          (kot: Kot) => kot.billingId === itemData.billingId
+        );
+
+        const existingKotItem = productOrderedBefore?.kotData.find(
+          (kotInfo) => kotInfo?.productId === kotItem?.productId
+        );
+
+        if (existingKotItem?.productId) {
+          const hasDifferentQuantity =
+             kotItem?.quantity - existingKotItem?.quantity;
+          if (hasDifferentQuantity) {
+            kotPayload.push({
+              productId: existingKotItem?.productId,
+              quantity: hasDifferentQuantity,
+            });
+          }
+        }
+        if (!existingKotItem?.productId) {
+          kotPayload.push(kotItem);
+        }
+      });
+
+      itemData.kotData = kotPayload
+
       const response = await this.prisma.kot.create({
         data: itemData,
       });
@@ -182,7 +224,6 @@ export class KotService {
   }
 
   async updateItem(itemId: string, KotDto: Partial<Kot>) {
-    console.debug("kot", KotDto);
     try {
       const response = await this.prisma.kot.update({
         where: {
