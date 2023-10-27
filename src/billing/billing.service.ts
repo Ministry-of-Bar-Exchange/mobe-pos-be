@@ -32,14 +32,17 @@ export class BillingService {
     });
   }
 
-  findBillFromTableCode(code: string) {
-    return this.prisma.billing.findFirst({
+  async findBillFromTableCode(code: string) {
+    const billing = await this.prisma.billing.findFirst({
       where: {
         table: {
-          code
-        }
+          code,
+        },
       },
     });
+
+    const list = await this.kotService.getProductListFromBillingId(billing.id);
+    return { ...billing, products: list };
   }
 
   async update(id: string, updateBillingDto: Partial<Billing>) {
