@@ -135,6 +135,10 @@ export class ProductsService {
           in: productIdsList,
         },
       },
+      include: {
+        category: true,
+        subcategory: true,
+      },
     });
 
     return products;

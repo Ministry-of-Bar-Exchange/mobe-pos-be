@@ -67,13 +67,11 @@ export class BillingService {
   async handlePrintBill(id: string, updateBillingDto: Partial<Billing>) {
     const list = await this.kotService.getProductListFromBillingId(id);
 
-    await this.prisma.billing.update({
+    return this.prisma.billing.update({
       where: {
         id,
       },
       data: { ...updateBillingDto, products: list },
     });
-
-    return list;
   }
 }

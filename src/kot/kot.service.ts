@@ -13,47 +13,50 @@ export class KotService {
 
   async createKot(itemData: Kot) {
     try {
-      const billingId = itemData?.billingId;
+      // const billingId = itemData?.billingId;
 
-      const kotList: Kot[] = await this.prisma.kot.findMany({
-        where: {
-          isDeleted: {
-            equals: false,
-          },
-          billingId,
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-      });
+      // const kotList: Kot[] = await this.prisma.kot.findMany({
+      //   where: {
+      //     isDeleted: {
+      //       equals: false,
+      //     },
+      //     billingId,
+      //   },
+      //   orderBy: {
+      //     updatedAt: "desc",
+      //   },
+      // });
 
-      const kotPayload = [];
+      // const kotPayload = [];
 
-      itemData?.kotData.forEach((kotItem: KotItem) => {
-        const productOrderedBefore = kotList.find(
-          (kot: Kot) => kot.billingId === itemData.billingId
-        );
+      // console.debug({ itemData })
 
-        const existingKotItem = productOrderedBefore?.kotData.find(
-          (kotInfo) => kotInfo?.productId === kotItem?.productId
-        );
+      // itemData?.kotData.forEach((kotItem: KotItem) => {
+      //   const productOrderedBefore = kotList.find(
+      //     (kot: Kot) => kot.billingId === itemData.billingId
+      //   );
 
-        if (existingKotItem?.productId) {
-          const hasDifferentQuantity =
-             kotItem?.quantity - existingKotItem?.quantity;
-          if (hasDifferentQuantity) {
-            kotPayload.push({
-              productId: existingKotItem?.productId,
-              quantity: hasDifferentQuantity,
-            });
-          }
-        }
-        if (!existingKotItem?.productId) {
-          kotPayload.push(kotItem);
-        }
-      });
+      //   const existingKotItem = productOrderedBefore?.kotData.find(
+      //     (kotInfo) => kotInfo?.productId === kotItem?.productId
+      //   );
 
-      itemData.kotData = kotPayload
+      //   if (existingKotItem?.productId) {
+      //     const hasDifferentQuantity =
+      //        kotItem?.quantity - existingKotItem?.quantity;
+      //        console.debug({ hasDifferentQuantity })
+      //     if (hasDifferentQuantity) {
+      //       kotPayload.push({
+      //         productId: existingKotItem?.productId,
+      //         quantity: hasDifferentQuantity,
+      //       });
+      //     }
+      //   }
+      //   if (!existingKotItem?.productId) {
+      //     kotPayload.push(kotItem);
+      //   }
+      // });
+
+      // itemData.kotData = kotPayload
 
       const response = await this.prisma.kot.create({
         data: itemData,

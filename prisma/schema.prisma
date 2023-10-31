@@ -86,10 +86,10 @@ model Billing {
   phone     String
   products  Json       @default("[]")
   kotList   Kot[]
-  subTotal  Int        @default(0)
-  discount  Int        @default(0)
-  tax       Int        @default(0)
-  netAmount Int        @default(0)
+  subTotal  Float        @default(0)
+  discount  Float        @default(0)
+  tax       Float        @default(0)
+  netAmount Float        @default(0)
   status    BillStatus @default(UNSETTLED)
   tableId   String     @db.ObjectId
   table     Tables     @relation(fields: [tableId], references: [id])
