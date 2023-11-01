@@ -61,6 +61,8 @@ export class KotService {
       const response = await this.prisma.kot.create({
         data: itemData,
       });
+      const list = await this.addProductsDataInKotInfo([response]);
+      response.kotData = list;
       return response;
     } catch (error) {
       console.debug(error, "\n cannot create Kot \n");
@@ -131,9 +133,8 @@ export class KotService {
 
   async readByTableCode(code: string) {
     try {
-      const response = await this.prisma.kot.findFirst({
+      const response = await this.prisma.kot.findMany({
         include: {
-          billing: true,
           table: true,
         },
         where: {
@@ -142,7 +143,15 @@ export class KotService {
           },
         },
       });
-      return response;
+
+      const structuredResponse = response?.map(async (kotData) => {
+        const list = await this.addProductsDataInKotInfo([kotData]);
+        return { ...kotData, kotData: list };
+      });
+
+      return (await Promise.allSettled(structuredResponse)).map(
+        (info: any) => info?.value
+      );
     } catch (err) {
       console.debug(err, "Could not find kot");
     }
@@ -176,7 +185,7 @@ export class KotService {
   async addProductsDataInKotInfo(KotListForBillId: Kot[]) {
     let productsOrdered = [];
 
-    KotListForBillId.forEach((kot) => {
+    KotListForBillId?.forEach((kot) => {
       const hasKotProductsLength = kot.kotData?.length;
       if (hasKotProductsLength) {
         productsOrdered = [...productsOrdered, ...kot?.kotData];
