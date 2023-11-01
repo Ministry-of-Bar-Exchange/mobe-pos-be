@@ -14,12 +14,14 @@ import { AuthModule } from "Auth/auth.module";
 import { BillingModule } from './billing/billing.module';
 import { TablesModule } from './tables/tables.module';
 import { KotModule } from "kot/kot.module";
+import { RestaurantModule } from "resturant/restaurant.module";
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
     PrismaModule,
+    RestaurantModule,
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
