@@ -99,7 +99,9 @@ model Billing {
   updatedAt      DateTime   @updatedAt
   foodDiscount   Float      @default(0)
   barDiscount    Float      @default(0)
-  discountReason String
+  discountReason String?    @default("")
+  billReason     String?    @default("")
+  billClosedBy   String?    @default("")
 }
 
 model Tables {
@@ -127,8 +129,12 @@ model Kot {
 }
 
 type KotItem {
-  productId String @db.ObjectId
-  quantity  Int
+  productId      String  @db.ObjectId
+  quantity       Int
+  modifier       String? @default("")
+  isCanceled     Boolean @default(false)
+  canceledBy     String  @default("")
+  canceledReason String  @default("")
 }
 
 type OrderedProducts {
@@ -140,7 +146,7 @@ enum BillStatus {
   UNSETTLED
   SETTLED
   VOID
-  COMPLEMENTORY
+  COMPLEMENTARY
 }
 
 enum KotStatus {

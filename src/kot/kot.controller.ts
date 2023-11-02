@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { KotService } from "./kot.service";
 import { Kot } from "@prisma/client";
+import { CancelKotItemPayloadType } from "types";
 
 @Controller("kot")
 export class KotController {
@@ -23,7 +24,7 @@ export class KotController {
   readCategory(@Param("id") id: string) {
     return this.kotService.read(id);
   }
-  
+
   @Get("table/:code")
   readKotByTableCode(@Param("code") code: string) {
     return this.kotService.readByTableCode(code);
@@ -34,12 +35,20 @@ export class KotController {
     return this.kotService.createKot(createItemDto);
   }
 
+  @Post("cancel-kot-item")
+  cancelKotItem(
+    @Body() updateKotItemPayload: Partial<CancelKotItemPayloadType>
+  ) {
+    console.debug("payload", updateKotItemPayload);
+    return this.kotService.updateKotItem(updateKotItemPayload);
+  }
+
   @Patch(":id")
   updateItem(@Param("id") id: string, @Body() updateItemDto: Partial<Kot>) {
     return this.kotService.updateItem(id, updateItemDto);
   }
 
-  @Patch("delete/:id")
+  @Delete(":id")
   deleteItem(@Param("id") id: string) {
     return this.kotService.deleteItem(id);
   }

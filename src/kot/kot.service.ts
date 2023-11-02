@@ -3,6 +3,7 @@ import { Kot, KotItem } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 
 import { ProductsService } from "products/products.service";
+import { CancelKotItemPayloadType } from "types";
 import { printBillReciept } from "utils/printer";
 
 @Injectable()
@@ -248,6 +249,56 @@ export class KotService {
       return response;
     } catch (err) {
       console.debug("Failed to update item", err);
+    }
+  }
+
+  async updateKotItem(updateKotItemPayload: Partial<CancelKotItemPayloadType>) {
+    try {
+
+      const hasPayloadToUpdate = !updateKotItemPayload?.kotData?.length;
+      if (hasPayloadToUpdate) return;
+
+      const requests = updateKotItemPayload?.kotData?.map(async (info) => {
+        const { id, ...rest } = info;
+
+        const foundKot = await this.prisma.kot.findFirst({
+          where: {
+            id,
+          },
+        });
+        const kotData = foundKot?.kotData;
+
+        const kotDataIndex = foundKot.kotData.findIndex(
+          (kotInfo) => kotInfo.productId === rest.productId
+        );
+
+        const isQuantityReduced =
+          info.quantity < foundKot?.kotData[kotDataIndex]?.quantity;
+
+        if (isQuantityReduced) {
+          kotData[kotDataIndex].quantity = info.quantity;
+        } else {
+          kotData[kotDataIndex].isCanceled = true;
+          kotData[kotDataIndex].canceledBy = updateKotItemPayload?.canceledBy;
+          kotData[kotDataIndex].canceledReason =
+            updateKotItemPayload?.canceledReason;
+        }
+
+        return this.prisma.kot.update({
+          where: {
+            id: foundKot.id,
+          },
+          data: {
+            kotData,
+          },
+        });
+      });
+
+      return (await Promise.allSettled(requests)).map(
+        (data: any) => data?.value
+      );
+    } catch (err) {
+      console.error("Failed to update item", err);
     }
   }
 
