@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "prisma/prisma.service";
 import { Billing } from "@prisma/client";
 import { KotService } from "kot/kot.service";
+import { printBillReciept } from "utils/printer";
 
 @Injectable()
 export class BillingService {
@@ -67,11 +68,13 @@ export class BillingService {
   async handlePrintBill(id: string, updateBillingDto: Partial<Billing>) {
     const list = await this.kotService.getProductListFromBillingId(id);
 
-    return this.prisma.billing.update({
+    const updatedKot = await this.prisma.billing.update({
       where: {
         id,
       },
       data: { ...updateBillingDto, products: list },
     });
+    await printBillReciept(updatedKot, "bill");
+    return updatedKot;
   }
 }

@@ -3,6 +3,7 @@ import { Kot, KotItem } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 
 import { ProductsService } from "products/products.service";
+import { printBillReciept } from "utils/printer";
 
 @Injectable()
 export class KotService {
@@ -63,6 +64,7 @@ export class KotService {
       });
       const list = await this.addProductsDataInKotInfo([response]);
       response.kotData = list;
+      await printBillReciept(response, "kot");
       return response;
     } catch (error) {
       console.debug(error, "\n cannot create Kot \n");
