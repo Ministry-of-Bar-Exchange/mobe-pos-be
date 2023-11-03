@@ -81,6 +81,21 @@ model Products {
   updatedAt     DateTime    @updatedAt
 }
 
+type CardInfo {
+  number        String     @default("")
+  amount        Float
+  bank          String    @default("")
+}
+
+
+type Payment {
+  cashAmount        Float?
+  creditCardAmount  Float?
+  chequeAmount      Float?
+  cards             CardInfo[]
+  balance           Float?
+}
+
 model Billing {
   id             String     @id @default(auto()) @map("_id") @db.ObjectId
   name           String
@@ -102,6 +117,7 @@ model Billing {
   discountReason String?    @default("")
   billReason     String?    @default("")
   billClosedBy   String?    @default("")
+  payment        Payment?
 }
 
 model Tables {
