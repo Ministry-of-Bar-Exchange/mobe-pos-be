@@ -4,6 +4,7 @@ import * as bcrypt from "bcrypt";
 import { PrismaService } from "prisma/prisma.service";
 import { EmailService } from "email/email.service";
 import { User as UserDto } from "@prisma/client";
+import { generateRandomNumber } from "utils/common";
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,7 @@ export class UsersService {
   async create(createUserDto: UserDto) {
     const hash = await bcrypt.hash(createUserDto?.password || "", 10);
     createUserDto.password = hash;
-
+    createUserDto.stewardNo = generateRandomNumber(4);
     const createdUser = await this.prisma.user.create({
       data: createUserDto,
     });

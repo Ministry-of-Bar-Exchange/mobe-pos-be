@@ -4,6 +4,7 @@ import { PrismaService } from "prisma/prisma.service";
 
 import { ProductsService } from "products/products.service";
 import { CancelKotItemPayloadType } from "types";
+import { generateRandomNumber } from "utils/common";
 import { printBillReciept } from "utils/printer";
 
 @Injectable()
@@ -59,6 +60,7 @@ export class KotService {
       // });
 
       // itemData.kotData = kotPayload
+      itemData.kotNo = generateRandomNumber(8);
 
       const response = await this.prisma.kot.create({
         data: itemData,
@@ -112,7 +114,16 @@ export class KotService {
         },
       });
 
-      return kot;
+      // ToDo -- need to test,
+      // const filteredKotList = kot.map((kotInfo) => {
+      //   kotInfo.kotData = kotInfo.kotData.filter(
+      //     (kotItem) => !kotItem.isCanceled
+      //   );
+      //   return kotInfo;
+      // });
+
+      // return filteredKotList;
+      return kot
     } catch (err) {
       console.debug(err, "Cannot get all kot");
     }
@@ -254,7 +265,6 @@ export class KotService {
 
   async updateKotItem(updateKotItemPayload: Partial<CancelKotItemPayloadType>) {
     try {
-
       const hasPayloadToUpdate = !updateKotItemPayload?.kotData?.length;
       if (hasPayloadToUpdate) return;
 

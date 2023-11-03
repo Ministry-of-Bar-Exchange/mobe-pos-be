@@ -1,24 +1,39 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "prisma/prisma.service";
 import { Billing } from "@prisma/client";
 import { KotService } from "kot/kot.service";
 import { printBillReciept } from "utils/printer";
+import { generateRandomNumber } from "utils/common";
 
 @Injectable()
 export class BillingService {
   constructor(private prisma: PrismaService, private kotService: KotService) {}
 
   create(createBillingDto: Billing) {
+    createBillingDto.billNo = generateRandomNumber(8);
     return this.prisma.billing.create({ data: createBillingDto });
   }
 
-  findAll() {
-    return this.prisma.billing.findMany({
+  async findAll() {
+    const billingList = await this.prisma.billing.findMany({
       include: {
         kotList: true,
         table: true,
       },
     });
+    const billingResponse = billingList?.map(async (billing: Billing) => {
+      const billingId = billing?.id;
+
+      if (!billingId) {
+        return {};
+      }
+
+      const list = await this.kotService.getProductListFromBillingId(billingId);
+      return { ...billing, products: list };
+    });
+    return (await Promise.allSettled(billingResponse)).map(
+      (info: any) => info?.value
+    );
   }
 
   findOne(id: string) {
@@ -34,16 +49,27 @@ export class BillingService {
   }
 
   async findBillFromTableCode(code: string) {
-    const billing = await this.prisma.billing.findFirst({
-      where: {
-        table: {
-          code,
+    try {
+      const billing = await this.prisma.billing.findFirst({
+        where: {
+          table: {
+            code,
+          },
         },
-      },
-    });
+      });
 
-    const list = await this.kotService.getProductListFromBillingId(billing.id);
-    return { ...billing, products: list };
+      const billingId = billing?.id;
+
+      if (!billingId) {
+        return {};
+      }
+
+      const list = await this.kotService.getProductListFromBillingId(billingId);
+      return { ...billing, products: list };
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
   }
 
   async update(id: string, updateBillingDto: Partial<Billing>) {

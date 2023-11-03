@@ -10,7 +10,7 @@ export class CreateUserDto {
   email: string;
   phone: string;
   gender: string;
-  employeeId: string;
+  employeeId: number;
   roleId:  string;
   departmentId: string;
   password?: string;

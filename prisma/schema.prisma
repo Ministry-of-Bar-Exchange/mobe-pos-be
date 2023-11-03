@@ -28,7 +28,7 @@ model User {
   email        String
   phone        String
   gender       String
-  employeeId   String
+  stewardNo    String
   password     String
   role         String     @default("staff")
   createdAt    DateTime   @default(now())
@@ -100,6 +100,7 @@ model Billing {
   id             String     @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   phone          String
+  billNo         String
   products       Json       @default("[]")
   kotList        Kot[]
   subTotal       Float      @default(0)
@@ -134,7 +135,9 @@ model Kot {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   status    KotStatus @default(ORDER_CONFIRMED)
   kotData   KotItem[]
+  kotNo     String
   modifier  String
+  stewardNo String?
   billingId String?   @db.ObjectId
   billing   Billing?  @relation(fields: [billingId], references: [id])
   tableId   String?   @db.ObjectId
