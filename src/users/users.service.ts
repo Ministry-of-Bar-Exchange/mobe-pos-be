@@ -25,7 +25,11 @@ export class UsersService {
   }
 
   async findAll() {
-    const allUsers = await this.prisma.user.findMany({});
+    const allUsers = await this.prisma.user.findMany({
+      where: {
+        isDeleted : false
+      }
+    });
     return allUsers;
   }
 
@@ -39,13 +43,20 @@ export class UsersService {
   }
 
   async update(userId: string, updateUserDto: Partial<UserDto>) {
-    const updatedUser = await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: updateUserDto,
-    });
-    return updatedUser;
+    try {
+      const hash = await bcrypt.hash(updateUserDto?.password || "", 10);
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: { ...updateUserDto, password: hash },
+      });
+      return updatedUser;
+    } catch(error) {
+      console.debug(error, "\n cannot update user \n");
+      return error;
+    }
+    
   }
 
   async remove(userId: string) {
@@ -55,5 +66,36 @@ export class UsersService {
       },
     });
     return deletedUser;
+  }
+  async createUser(itemData: any) {
+    try {
+      const hash = await bcrypt.hash(itemData?.password || "", 10);
+      itemData.password = hash;
+      itemData.stewardNo = generateRandomNumber(4);
+      const createdUser = await this.prisma.user.create({
+        data: itemData,
+      });
+
+      return createdUser;
+    } catch (error) {
+      console.debug(error, "\n cannot create user \n");
+      return error;
+    }
+  }
+
+  async deleteItem(userId: string) {
+    try {
+      const response = await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data : {
+          isDeleted : true
+        }
+      });
+      return response;
+    } catch (err) {
+      console.debug(err, "Delete item failed");
+    }
   }
 }

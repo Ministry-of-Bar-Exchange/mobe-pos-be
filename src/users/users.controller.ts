@@ -48,12 +48,23 @@ export class UsersController {
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateTeamMemberDto: UpdateUserDto) {
+  update(@Param("id") id: string, @Body() updateTeamMemberDto: any) {
     return this.teamMemberService.update(id, updateTeamMemberDto);
   }
 
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.teamMemberService.remove(id);
+  }
+
+  @Public()
+  @Post("/user")
+  createUser(@Body() createItemDto: UserDto) {
+    return this.teamMemberService.createUser(createItemDto);
+  }
+
+  @Patch("delete/:id")
+  deleteItem(@Param("id") id: string) {
+    return this.teamMemberService.deleteItem(id);
   }
 }

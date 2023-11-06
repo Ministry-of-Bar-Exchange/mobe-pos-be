@@ -21,19 +21,21 @@ model Restaurant {
 }
 
 model User {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  restaurantId String     @db.ObjectId
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  restaurantId String?     @db.ObjectId
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
   name         String
   email        String
-  phone        String
-  gender       String
-  stewardNo    String
+  phone        String?
+  gender       String?
+  stewardNo    String?
   password     String
   role         String     @default("staff")
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-
+  createdAt    DateTime?  @default(now())
+  updatedAt    DateTime?  @updatedAt
+  isDeleted    Boolean?   @default(false)
+  department   String?    @default("")
+  desigination String?    @default("")
   @@unique([email])
 }
 
