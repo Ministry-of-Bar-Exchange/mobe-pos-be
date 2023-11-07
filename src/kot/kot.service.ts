@@ -64,10 +64,15 @@ export class KotService {
 
       const response = await this.prisma.kot.create({
         data: itemData,
+        include:{ 
+          table: true
+        }
       });
       const list = await this.addProductsDataInKotInfo([response]);
+      const steward = await this.findOneByStewardNo(itemData.stewardNo)
       response.kotData = list;
-      await printBillReciept(response, "kot");
+
+      await printBillReciept(response, steward, "kot");
       return response;
     } catch (error) {
       console.debug(error, "\n cannot create Kot \n");
@@ -194,6 +199,15 @@ export class KotService {
     const KotDataForBill = await this.getKotForBillingId(billingId);
     const list = await this.addProductsDataInKotInfo(KotDataForBill);
     return list;
+  }
+
+  async findOneByStewardNo(stewardNo: string) {
+    const foundUser = await this.prisma.user.findFirst({
+      where: {
+        stewardNo,
+      },
+    });
+    return foundUser;
   }
 
   async addProductsDataInKotInfo(KotListForBillId: Kot[]) {

@@ -17,24 +17,13 @@ const resturant = {
   // needed logo to display in bill
 };
 
-const KotData = {
-  tableNumber: "3",
-  StewardName: "John Cena",
-  modifiers: "Please Add Extra Toppins",
-  kotData: [
-    { productName: "Vodka", quantity: 5 },
-    { productName: "Pizza", quantity: 2 },
-    { productName: "Pakistan", quantity: 3 }
-  ],
-  id: "346nbc45&b34y4y53y5yhfc24b9234u"
-}
-const kotHeader = (printer, id, stewardNumber, tableCode) => {
+const kotHeader = (printer, id, stewardName, tableCode) => {
   printer.alignLeft();
   printer.print('KOT Number: ');
   printer.print(id);
   printer.newLine();
-  printer.print('Steward Name: ');
-  printer.print(stewardNumber);
+  printer.print('Steward: ');
+  printer.print(stewardName);
   printer.newLine();
   printer.print('Table Number: ');
   printer.print(tableCode);
@@ -80,7 +69,7 @@ const formatStringWithoutDecimal = (str) => {
 }
 
 
-const printBillReciept = async (data, type) => {
+const printBillReciept = async (data, steward=null, type) => {
   console.log("Payload: ", data);
   let isFoodAvailable = false;
   let isBevaragesAvailable = false;
@@ -208,10 +197,10 @@ const printBillReciept = async (data, type) => {
     billPrinter.alignCenter();
     billPrinter.println('Thank you for visiting!')
   } else { // KOT
-    const { id, kotData, modifier } = data;
+    const { kotNo, kotData, modifier, table } = data;
 
-    kotHeader(barPrinter, id, "John Cena", modifier)
-    kotHeader(kitchenPrinter, id, "John Cena", modifier)
+    kotHeader(barPrinter, kotNo, steward?.name, table?.code)
+    kotHeader(kitchenPrinter, kotNo, steward?.name, table?.code)
 
     console.log("KOT Print products", kotData);
 

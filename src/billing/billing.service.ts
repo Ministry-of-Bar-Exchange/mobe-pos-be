@@ -100,7 +100,7 @@ export class BillingService {
       },
       data: { ...updateBillingDto, products: list },
     });
-    await printBillReciept(updatedKot, "bill");
+    await printBillReciept(updatedKot, null, "bill");
     return updatedKot;
   }
 }

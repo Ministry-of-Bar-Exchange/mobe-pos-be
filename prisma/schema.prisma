@@ -121,6 +121,7 @@ model Billing {
   billReason     String?    @default("")
   billClosedBy   String?    @default("")
   payment        Payment?
+  stewardNo      String?
 }
 
 model Tables {
