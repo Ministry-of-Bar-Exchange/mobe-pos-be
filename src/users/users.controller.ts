@@ -24,19 +24,20 @@ import { Public } from "Auth/auth.public";
 export class UsersController {
   constructor(private readonly teamMemberService: UsersService) {}
 
-  // @Post('bulk-create')
-  // @UseInterceptors(FileInterceptor('users'))
-  // createBulkTeamMember(@UploadedFile() file: any) {
-  //   const stringifyData = file?.buffer?.toString();
-  //   const userListToCreate = toJSON(stringifyData);
-  //   this.teamMemberService.handleBulkUpload(userListToCreate);
-  //   return userListToCreate;
-  // }
+  @Post('bulk-upload')
+  @UseInterceptors(FileInterceptor('users'))
+  createBulkTeamMember(@UploadedFile() file: any) {
+    const stringifyData = file?.buffer?.toString();
+    const userListToCreate = toJSON(stringifyData);
+    this.teamMemberService.handleBulkUpload(userListToCreate);
+    return userListToCreate;
+  }
 
   @Post()
   create(@Body() createTeamMemberDto: UserDto) {
     return this.teamMemberService.create(createTeamMemberDto);
   }
+
   @Get()
   findAll() {
     return this.teamMemberService.findAll();
@@ -52,7 +53,7 @@ export class UsersController {
     return this.teamMemberService.update(id, updateTeamMemberDto);
   }
 
-  @Delete(":id")
+  @Patch("delete/:id")
   remove(@Param("id") id: string) {
     return this.teamMemberService.remove(id);
   }

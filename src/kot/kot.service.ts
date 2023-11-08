@@ -64,12 +64,12 @@ export class KotService {
 
       const response = await this.prisma.kot.create({
         data: itemData,
-        include:{ 
-          table: true
-        }
+        include: {
+          table: true,
+        },
       });
       const list = await this.addProductsDataInKotInfo([response]);
-      const steward = await this.findOneByStewardNo(itemData.stewardNo)
+      const steward = await this.findOneByStewardNo(itemData.stewardNo);
       response.kotData = list;
 
       await printBillReciept(response, steward, "kot");
@@ -119,16 +119,7 @@ export class KotService {
         },
       });
 
-      // ToDo -- need to test,
-      // const filteredKotList = kot.map((kotInfo) => {
-      //   kotInfo.kotData = kotInfo.kotData.filter(
-      //     (kotItem) => !kotItem.isCanceled
-      //   );
-      //   return kotInfo;
-      // });
-
-      // return filteredKotList;
-      return kot
+      return kot;
     } catch (err) {
       console.debug(err, "Cannot get all kot");
     }
@@ -165,7 +156,10 @@ export class KotService {
 
       const structuredResponse = response?.map(async (kotData) => {
         const list = await this.addProductsDataInKotInfo([kotData]);
-        return { ...kotData, kotData: list };
+        const filteredKotList = list.filter((kotItem) => {
+          return !kotItem.isCanceled;
+        });
+        return { ...kotData, kotData: filteredKotList };
       });
 
       return (await Promise.allSettled(structuredResponse)).map(

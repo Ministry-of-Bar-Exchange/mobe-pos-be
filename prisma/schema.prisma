@@ -38,12 +38,12 @@ model User {
   gender       String?
   stewardNo    String?
   password     String
+  department   String?
+  profile      String?
   role         String      @default("staff")
   createdAt    DateTime?   @default(now())
   updatedAt    DateTime?   @updatedAt
   isDeleted    Boolean?    @default(false)
-  department   String?     @default("")
-  desigination String?     @default("")
 
   @@unique([email])
 }

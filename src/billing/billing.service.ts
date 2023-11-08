@@ -4,6 +4,7 @@ import { Billing } from "@prisma/client";
 import { KotService } from "kot/kot.service";
 import { printBillReciept } from "utils/printer";
 import { generateRandomNumber } from "utils/common";
+import { CommonObjectType } from "types";
 
 @Injectable()
 export class BillingService {
@@ -14,8 +15,11 @@ export class BillingService {
     return this.prisma.billing.create({ data: createBillingDto });
   }
 
-  async findAll() {
+  async findAll(filters: CommonObjectType) {
     const billingList = await this.prisma.billing.findMany({
+      where:{
+        ...filters
+      },
       include: {
         kotList: true,
         table: true,
@@ -48,13 +52,14 @@ export class BillingService {
     });
   }
 
-  async findBillFromTableCode(code: string) {
+  async findBillFromTableCode(code: string, filters: CommonObjectType) {
     try {
       const billing = await this.prisma.billing.findFirst({
         where: {
           table: {
             code,
           },
+          ...filters
         },
       });
 

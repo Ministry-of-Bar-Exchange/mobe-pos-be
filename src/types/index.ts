@@ -9,3 +9,7 @@ export interface CancelKotItemPayloadType {
   canceledReason: string;
   kotData: UpdateKotItemListType[];
 }
+
+export interface CommonObjectType {
+  [key: string]: string;
+}
