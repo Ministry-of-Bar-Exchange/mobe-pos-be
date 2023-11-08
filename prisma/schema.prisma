@@ -11,13 +11,19 @@ datasource db {
 
 model Restaurant {
   id               String @id @default(auto()) @map("_id") @db.ObjectId
-  name             String
-  phone            String
-  address          String
-  taxId            String
-  taxIdType        String
-  discountPassword String
+  name             String?
+  phone            String?
+  address          String?
+  taxId            String?
+  taxIdType        String?
+  discountPassword String?
   users            User[]
+  taxes            Taxes[]
+}
+
+type Taxes {
+  type         String
+  percentage   Float
 }
 
 model User {

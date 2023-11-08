@@ -29,4 +29,40 @@ export class restaurantAuthenticateService {
       return err;
     }
   }
+
+  async getAllTaxList(id) {
+    try {
+      const response = await this.prisma.restaurant.findFirst({
+        where: {
+          id
+        }
+      });
+      return response;
+    } catch (err) {
+      console.debug(err, "Cannot get all taxs");
+    }
+  }
+
+  async createTax(taxData: any) {
+    const { restaurantId } = taxData;
+    delete taxData.restaurantId;
+    try {
+      const restaurant = await this.prisma.restaurant.findFirst({
+        where: { 
+          id: restaurantId 
+        },
+      });
+  
+      const response = await this.prisma.restaurant.update({
+        where: { id: restaurantId },
+        data: {
+          taxes: [...restaurant.taxes, taxData],
+        },
+      });
+      return response;
+    } catch (err) {
+      console.debug(err, "Cannot create new tax");
+    }
+  }
+    
 }
