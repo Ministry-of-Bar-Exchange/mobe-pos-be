@@ -10,20 +10,22 @@ datasource db {
 }
 
 model Restaurant {
-  id               String @id @default(auto()) @map("_id") @db.ObjectId
-  name             String?
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
   phone            String?
   address          String?
   taxId            String?
   taxIdType        String?
   discountPassword String?
+  outletName       String?
+  firmName         String?
   users            User[]
+  isDeleted        Boolean? @default(false)
   taxes            Taxes[]
 }
 
 type Taxes {
-  type         String
-  percentage   Float
+  type       String
+  percentage Float
 }
 
 model User {
@@ -36,12 +38,13 @@ model User {
   gender       String?
   stewardNo    String?
   password     String
-  role         String     @default("staff")
-  createdAt    DateTime?  @default(now())
-  updatedAt    DateTime?  @updatedAt
-  isDeleted    Boolean?   @default(false)
-  department   String?    @default("")
-  desigination String?    @default("")
+  role         String      @default("staff")
+  createdAt    DateTime?   @default(now())
+  updatedAt    DateTime?   @updatedAt
+  isDeleted    Boolean?    @default(false)
+  department   String?     @default("")
+  desigination String?     @default("")
+
   @@unique([email])
 }
 
@@ -90,18 +93,17 @@ model Products {
 }
 
 type CardInfo {
-  number        String     @default("")
-  amount        Float
-  bank          String    @default("")
+  number String @default("")
+  amount Float
+  bank   String @default("")
 }
 
-
 type Payment {
-  cashAmount        Float?
-  creditCardAmount  Float?
-  chequeAmount      Float?
-  cards             CardInfo[]
-  balance           Float?
+  cashAmount       Float?
+  creditCardAmount Float?
+  chequeAmount     Float?
+  cards            CardInfo[]
+  balance          Float?
 }
 
 model Billing {
