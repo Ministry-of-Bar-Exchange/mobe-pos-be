@@ -2,7 +2,7 @@ import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "prisma/prisma.service";
 import { Billing } from "@prisma/client";
 import { KotService } from "kot/kot.service";
-import { printBillReciept } from "utils/printer";
+import { printBilReceipt } from "utils/printer";
 import { generateRandomNumber } from "utils/common";
 import { CommonObjectType } from "types";
 
@@ -17,8 +17,8 @@ export class BillingService {
 
   async findAll(filters: CommonObjectType) {
     const billingList = await this.prisma.billing.findMany({
-      where:{
-        ...filters
+      where: {
+        ...filters,
       },
       include: {
         kotList: true,
@@ -59,7 +59,7 @@ export class BillingService {
           table: {
             code,
           },
-          ...filters
+          ...filters,
         },
       });
 
@@ -97,15 +97,19 @@ export class BillingService {
   }
 
   async handlePrintBill(id: string, updateBillingDto: Partial<Billing>) {
-    const list = await this.kotService.getProductListFromBillingId(id);
+    try {
+      const list = await this.kotService.getProductListFromBillingId(id);
 
-    const updatedKot = await this.prisma.billing.update({
-      where: {
-        id,
-      },
-      data: { ...updateBillingDto, products: list },
-    });
-    await printBillReciept(updatedKot, null, "bill");
-    return updatedKot;
+      const updatedKot = await this.prisma.billing.update({
+        where: {
+          id,
+        },
+        data: { ...updateBillingDto, products: list },
+      });
+      const { isBillPrinterSuccess: isPrinted } = await printBilReceipt( updatedKot, null, "bill");
+      return { ...updatedKot, isPrinted };
+    } catch (error) {
+      console.log("Unable to print bill", error);
+    }
   }
 }

@@ -5,7 +5,7 @@ import { PrismaService } from "prisma/prisma.service";
 import { ProductsService } from "products/products.service";
 import { CancelKotItemPayloadType } from "types";
 import { generateRandomNumber } from "utils/common";
-import { printBillReciept } from "utils/printer";
+import { printBilReceipt } from "utils/printer";
 
 @Injectable()
 export class KotService {
@@ -72,8 +72,8 @@ export class KotService {
       const steward = await this.findOneByStewardNo(itemData.stewardNo);
       response.kotData = list;
 
-      await printBillReciept(response, steward, "kot");
-      return response;
+      const { isKitchenPrinterSuccess, isBarPrinterSuccess } = await printBilReceipt(response, steward, "kot");
+      return { ...response, isKitchenPrinterSuccess, isBarPrinterSuccess };
     } catch (error) {
       console.debug(error, "\n cannot create Kot \n");
       return error;
