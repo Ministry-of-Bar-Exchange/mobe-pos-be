@@ -1,1 +1,3 @@
-export class CreateTableDto {}
+export class CreateMultipleTableDto {
+  [key: string]: string[];
+}

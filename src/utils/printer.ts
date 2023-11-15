@@ -236,9 +236,11 @@ const printBilReceipt = async (data = null, steward = null, type) => {
             { text: productName, align: "LEFT", width: 0.4 },
             { text: productQuantity, align: "RIGHT", width: 0.2 },
           ]);
-          barPrinter.tableCustom([
-            { text: " (" + item.modifier + ")", align: "LEFT", width: 0.4 },
-          ]);
+          if (item.modifier) {
+            barPrinter.tableCustom([
+              { text: " (" + item.modifier + ")", align: "LEFT", width: 0.4 },
+            ]);
+          }
           isFoodAvailable = true;
         } else {
           barPrinter.setTypeFontA();
@@ -246,9 +248,11 @@ const printBilReceipt = async (data = null, steward = null, type) => {
             { text: productName, align: "LEFT", width: 0.4 },
             { text: productQuantity, align: "RIGHT", width: 0.2 },
           ]);
-          barPrinter.tableCustom([
-            { text: " (" + item.modifier + ")", align: "LEFT", width: 0.4 },
-          ]);
+          if (item.modifier) {
+            barPrinter.tableCustom([
+              { text: " (" + item.modifier + ")", align: "LEFT", width: 0.4 },
+            ]);
+          }
           isBevaragesAvailable = true;
         }
       }
@@ -264,7 +268,7 @@ const printBilReceipt = async (data = null, steward = null, type) => {
       billPrinter.execute();
       isBillPrinterSuccess = true;
       console.log("Print done!");
-    } 
+    }
     if (isBevaragesAvailable && isBarPrinterConnected) {
       barPrinter.cut();
       barPrinter.execute();
@@ -277,7 +281,11 @@ const printBilReceipt = async (data = null, steward = null, type) => {
       isKitchenPrinterSuccess = true;
       console.log("Print done!");
     }
-    return { isBillPrinterSuccess, isKitchenPrinterSuccess, isBarPrinterSuccess };
+    return {
+      isBillPrinterSuccess,
+      isKitchenPrinterSuccess,
+      isBarPrinterSuccess,
+    };
   } catch (error) {
     console.error("Print failed:", error);
   }
