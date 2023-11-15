@@ -60,20 +60,31 @@ export class KotService {
       // });
 
       // itemData.kotData = kotPayload
-      itemData.kotNo = generateRandomNumber(8);
-
-      const response = await this.prisma.kot.create({
-        data: itemData,
-        include: {
-          table: true,
-        },
-      });
-      const list = await this.addProductsDataInKotInfo([response]);
       const steward = await this.findOneByStewardNo(itemData.stewardNo);
-      response.kotData = list;
 
-      const { isKitchenPrinterSuccess, isBarPrinterSuccess } = await printBilReceipt(response, steward, "kot");
-      return { ...response, isKitchenPrinterSuccess, isBarPrinterSuccess };
+      if(steward) {
+        itemData.kotNo = generateRandomNumber(8);
+
+        const response = await this.prisma.kot.create({
+          data: itemData,
+          include: {
+            table: true,
+          },
+        });
+
+        const list = await this.addProductsDataInKotInfo([response]);
+        response.kotData = list;
+  
+        const { isKitchenPrinterSuccess, isBarPrinterSuccess } = await printBilReceipt(response, steward, "kot");
+        return { ...response, isKitchenPrinterSuccess, isBarPrinterSuccess };
+      } else {
+        let response = {
+          message: "Incorrect steward number!",
+          error: true
+        }
+        return { ...response };
+      }
+      
     } catch (error) {
       console.debug(error, "\n cannot create Kot \n");
       return error;
