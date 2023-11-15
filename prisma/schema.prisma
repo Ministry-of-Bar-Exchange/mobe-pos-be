@@ -147,7 +147,7 @@ model Kot {
   status    KotStatus @default(ORDER_CONFIRMED)
   kotData   KotItem[]
   kotNo     String
-  modifier  String
+  modifier  String?
   stewardNo String?
   billingId String?   @db.ObjectId
   billing   Billing?  @relation(fields: [billingId], references: [id])

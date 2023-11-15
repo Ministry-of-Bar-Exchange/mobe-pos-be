@@ -218,7 +218,7 @@ const printBilReceipt = async (data = null, steward = null, type) => {
     billPrinter.println("Thank you for visiting!");
   } else if (data && isBarPrinterConnected && isKitchenPrinterConnected) {
     // KOT
-    const { kotNo, kotData, modifier, table } = data;
+    const { kotNo, kotData, table } = data;
 
     kotHeader(barPrinter, kotNo, steward?.name, table?.code);
     kotHeader(kitchenPrinter, kotNo, steward?.name, table?.code);
@@ -236,20 +236,23 @@ const printBilReceipt = async (data = null, steward = null, type) => {
             { text: productName, align: "LEFT", width: 0.4 },
             { text: productQuantity, align: "RIGHT", width: 0.2 },
           ]);
+          barPrinter.tableCustom([
+            { text: " (" + item.modifier + ")", align: "LEFT", width: 0.4 },
+          ]);
           isFoodAvailable = true;
         } else {
-          console.log("Beverage Item: ", item);
           barPrinter.setTypeFontA();
           barPrinter.tableCustom([
             { text: productName, align: "LEFT", width: 0.4 },
             { text: productQuantity, align: "RIGHT", width: 0.2 },
           ]);
+          barPrinter.tableCustom([
+            { text: " (" + item.modifier + ")", align: "LEFT", width: 0.4 },
+          ]);
           isBevaragesAvailable = true;
         }
       }
     }
-    kotFooter(kitchenPrinter, modifier);
-    kotFooter(barPrinter, modifier);
   }
 
   try {
