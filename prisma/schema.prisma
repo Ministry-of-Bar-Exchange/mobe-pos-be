@@ -9,8 +9,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Restaurant {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+type Restaurant {
   phone            String?
   address          String?
   taxId            String?
@@ -18,7 +17,6 @@ model Restaurant {
   discountPassword String?
   outletName       String?
   firmName         String?
-  users            User[]
   isDeleted        Boolean? @default(false)
   taxes            Taxes[]
 }
@@ -29,21 +27,20 @@ type Taxes {
 }
 
 model User {
-  id           String      @id @default(auto()) @map("_id") @db.ObjectId
-  restaurantId String?     @db.ObjectId
-  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
-  name         String
-  email        String
-  phone        String?
-  gender       String?
-  stewardNo    String?
-  password     String
-  department   String?
-  profile      String?
-  role         String      @default("staff")
-  createdAt    DateTime?   @default(now())
-  updatedAt    DateTime?   @updatedAt
-  isDeleted    Boolean?    @default(false)
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  restaurant Restaurant?
+  name       String
+  email      String
+  phone      String?
+  gender     String?
+  stewardNo  String?
+  password   String
+  department String?
+  profile    String?
+  role       String      @default("staff")
+  createdAt  DateTime?   @default(now())
+  updatedAt  DateTime?   @updatedAt
+  isDeleted  Boolean?    @default(false)
 
   @@unique([email])
 }
