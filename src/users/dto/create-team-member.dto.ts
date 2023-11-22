@@ -16,4 +16,5 @@ export class CreateUserDto {
   password?: string;
   department?: string;
   role?: string;
+  id?: string;
 }

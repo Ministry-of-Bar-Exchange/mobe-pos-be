@@ -166,7 +166,7 @@ export class KotService {
       });
 
       const structuredResponse = response?.map(async (kotData) => {
-        const list = await this.addProductsDataInKotInfo([kotData]);
+        const list = await this.addProductsDataInKotWithDuplicateRecords([kotData]);
         const filteredKotList = list.filter((kotItem) => {
           return !kotItem.isCanceled;
         });
@@ -241,6 +241,45 @@ export class KotService {
       } else {
         filteredProductsOrdered.push(orderItem);
       }
+    });
+
+    const productsIds = filteredProductsOrdered?.map(
+      (product) => product.productId
+    );
+
+    const products = await this.productService.getProductsFromIdsArray(
+      productsIds
+    );
+
+    const list = filteredProductsOrdered?.map((info) => {
+      const productData = products?.find(
+        (product) => product.id === info.productId
+      );
+
+      const amount = Number(info?.quantity) * Number(productData?.price);
+
+      return {
+        ...info,
+        product: productData,
+        amount,
+      };
+    });
+
+    return list;
+  }
+
+  async addProductsDataInKotWithDuplicateRecords(KotListForBillId: Kot[]) {
+    let productsOrdered = [];
+
+    KotListForBillId?.forEach((kot) => {
+      const hasKotProductsLength = kot.kotData?.length;
+      if (hasKotProductsLength) {
+        productsOrdered = [...productsOrdered, ...kot?.kotData];
+      }
+    });
+
+    let filteredProductsOrdered = [];
+    productsOrdered.forEach((orderItem) => { filteredProductsOrdered.push(orderItem);
     });
 
     const productsIds = filteredProductsOrdered?.map(

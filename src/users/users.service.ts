@@ -1,10 +1,19 @@
-import { Injectable } from "@nestjs/common";
+import {
+  HttpException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 
 import { PrismaService } from "prisma/prisma.service";
-import { EmailService } from "email/email.service";
 import { User as UserDto } from "@prisma/client";
 import { generateRandomNumber } from "utils/common";
+import { Restaurant as RestaurantDto } from "@prisma/client";
+import {
+  UpdatePasswordDto,
+  restaurantAuthenticateDto,
+} from "./dto/user-restaurant.dto";
 
 @Injectable()
 export class UsersService {
@@ -193,6 +202,203 @@ export class UsersService {
       return response;
     } catch (err) {
       console.debug(err, "Delete item failed");
+    }
+  }
+
+  /**
+   * Restaurant Services
+   */
+
+  async authenticate(restaurantAuthenticateDto: restaurantAuthenticateDto) {
+    try {
+      if (restaurantAuthenticateDto) {
+        const particularUser = await this.prisma.user.findFirst({
+          where: {
+            id: restaurantAuthenticateDto?.userId,
+          },
+        });
+        const matchPassword = await bcrypt.compare(
+          restaurantAuthenticateDto?.discountPassword,
+          particularUser?.restaurant.discountPassword
+        );
+        const response = {
+          isAuthenticate: matchPassword,
+        };
+
+        return response;
+      }
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  private async findUserRestaurant(id: string): Promise<RestaurantDto> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+      });
+      if (!user) {
+        throw new NotFoundException("Could not find User");
+      }
+      return user.restaurant as RestaurantDto;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async createRestaurant(createRestaurantDto: restaurantAuthenticateDto) {
+    let userId = createRestaurantDto.userId;
+    delete createRestaurantDto.userId;
+
+    const hash = await bcrypt.hash(
+      createRestaurantDto?.discountPassword || "",
+      10
+    );
+    createRestaurantDto.discountPassword = hash;
+    try {
+      const response = await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          restaurant: createRestaurantDto,
+        },
+      });
+      return response;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async findAllRestaurant() {
+    try {
+      const allRestaurant = await this.prisma.user.findMany({});
+      return allRestaurant;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async updateRestaurant(userId: string, restaurantData: any) {
+    try {
+      const selectedUser = await this.findUserRestaurant(userId);
+
+      const updatedRestaurant = await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          restaurant: { ...selectedUser, ...restaurantData },
+        },
+      });
+
+      return updatedRestaurant;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async updateRestaurantPassword(
+    userId: string,
+    updatePasswordDto: Partial<UpdatePasswordDto>
+  ) {
+    try {
+      const oldPassword = await updatePasswordDto?.currentPassword;
+      const newPassword = await updatePasswordDto?.newPassword;
+      const selectedUser = await this.findUserRestaurant(userId);
+      const hash = await bcrypt.hash(newPassword || "", 10);
+
+      if (!selectedUser?.discountPassword) {
+        throw new UnauthorizedException("wrong password");
+      }
+      const matchPassword = await bcrypt.compare(
+        oldPassword,
+        selectedUser?.discountPassword as string
+      );
+
+      if (matchPassword) {
+        const updatedRestaurant = await this.prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            restaurant: {
+              ...selectedUser,
+              discountPassword: hash,
+            },
+          },
+        });
+        return updatedRestaurant;
+      } else {
+        return "password doesn't match";
+      }
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async removeRestaurant(userId: string) {
+    try {
+      let response = await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          restaurant: null,
+        },
+      });
+      return response;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async getAllTaxList(userId) {
+    try {
+      const response = await this.prisma.user.findFirst({
+        where: {
+          id: userId,
+        },
+      });
+      return response?.restaurant.taxes;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async createTax(taxData: any) {
+    const { userId } = taxData;
+    delete taxData.userId;
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          id: userId,
+        },
+      });
+
+      const response = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          restaurant: {
+            ...user.restaurant,
+            taxes: [...user.restaurant.taxes, taxData],
+          },
+        },
+      });
+      return response;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
     }
   }
 }

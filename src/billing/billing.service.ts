@@ -16,28 +16,35 @@ export class BillingService {
   }
 
   async findAll(filters: CommonObjectType) {
-    const billingList = await this.prisma.billing.findMany({
-      where: {
-        ...filters,
-      },
-      include: {
-        kotList: true,
-        table: true,
-      },
-    });
-    const billingResponse = billingList?.map(async (billing: Billing) => {
-      const billingId = billing?.id;
+    try {
+      const billingList = await this.prisma.billing.findMany({
+        where: {
+          ...filters,
+        },
+        include: {
+          kotList: true,
+          table: true,
+        },
+      });
+      const billingResponse = billingList?.map(async (billing: Billing) => {
+        const billingId = billing?.id;
 
-      if (!billingId) {
-        return {};
-      }
+        if (!billingId) {
+          return {};
+        }
 
-      const list = await this.kotService.getProductListFromBillingId(billingId);
-      return { ...billing, products: list };
-    });
-    return (await Promise.allSettled(billingResponse)).map(
-      (info: any) => info?.value
-    );
+        const list = await this.kotService.getProductListFromBillingId(
+          billingId
+        );
+        return { ...billing, products: list };
+      });
+      return (await Promise.allSettled(billingResponse)).map(
+        (info: any) => info?.value
+      );
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
   }
 
   findOne(id: string) {
@@ -106,7 +113,11 @@ export class BillingService {
         },
         data: { ...updateBillingDto, products: list },
       });
-      const { isBillPrinterSuccess: isPrinted } = await printBilReceipt( updatedKot, null, "bill");
+      const { isBillPrinterSuccess: isPrinted } = await printBilReceipt(
+        updatedKot,
+        null,
+        "bill"
+      );
       return { ...updatedKot, isPrinted };
     } catch (error) {
       console.log("Unable to print bill", error);
