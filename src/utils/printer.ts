@@ -102,9 +102,9 @@ const printBilReceipt = async (data = null, steward = null, type) => {
     options: { timeout: 5000 },
   });
 
-  let isBillPrinterConnected = await billPrinter.isPrinterConnected();
-  let isKitchenPrinterConnected = await billPrinter.isPrinterConnected();
-  let isBarPrinterConnected = await billPrinter.isPrinterConnected();
+  let isBillPrinterConnected = await billPrinter?.isPrinterConnected();
+  let isKitchenPrinterConnected = await billPrinter?.isPrinterConnected();
+  let isBarPrinterConnected = await billPrinter?.isPrinterConnected();
 
   if (type == "bill" && isBillPrinterConnected) {
     const {

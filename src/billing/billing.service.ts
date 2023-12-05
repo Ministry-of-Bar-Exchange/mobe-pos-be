@@ -89,7 +89,7 @@ export class BillingService {
       where: {
         id,
       },
-      data: updateBillingDto,
+      data: { ...updateBillingDto, isBillPrinted: false },
     });
     return updatedBilling;
   }
@@ -111,7 +111,7 @@ export class BillingService {
         where: {
           id,
         },
-        data: { ...updateBillingDto, products: list },
+        data: { ...updateBillingDto, products: list, isBillPrinted: true },
       });
       const { isBillPrinterSuccess: isPrinted } = await printBilReceipt(
         updatedKot,
