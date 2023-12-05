@@ -15,6 +15,7 @@ import { BillingModule } from './billing/billing.module';
 import { TablesModule } from './tables/tables.module';
 import { KotModule } from "kot/kot.module";
 import { RestaurantModule } from "resturant/restaurant.module";
+import { ReportsModule } from "reports/reports.module";
 
 @Module({
   imports: [
@@ -59,7 +60,8 @@ import { RestaurantModule } from "resturant/restaurant.module";
     CategoryModule,
     SubCategoryModule,
     BillingModule,
-    TablesModule
+    TablesModule,
+    ReportsModule
   ],
   controllers: [],
 })
