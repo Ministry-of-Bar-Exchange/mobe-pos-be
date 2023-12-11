@@ -16,75 +16,39 @@ export class KotService {
 
   async createKot(itemData: Kot) {
     try {
-      // const billingId = itemData?.billingId;
-
-      // const kotList: Kot[] = await this.prisma.kot.findMany({
-      //   where: {
-      //     isDeleted: {
-      //       equals: false,
-      //     },
-      //     billingId,
-      //   },
-      //   orderBy: {
-      //     updatedAt: "desc",
-      //   },
-      // });
-
-      // const kotPayload = [];
-
-      // console.debug({ itemData })
-
-      // itemData?.kotData.forEach((kotItem: KotItem) => {
-      //   const productOrderedBefore = kotList.find(
-      //     (kot: Kot) => kot.billingId === itemData.billingId
-      //   );
-
-      //   const existingKotItem = productOrderedBefore?.kotData.find(
-      //     (kotInfo) => kotInfo?.productId === kotItem?.productId
-      //   );
-
-      //   if (existingKotItem?.productId) {
-      //     const hasDifferentQuantity =
-      //        kotItem?.quantity - existingKotItem?.quantity;
-      //        console.debug({ hasDifferentQuantity })
-      //     if (hasDifferentQuantity) {
-      //       kotPayload.push({
-      //         productId: existingKotItem?.productId,
-      //         quantity: hasDifferentQuantity,
-      //       });
-      //     }
-      //   }
-      //   if (!existingKotItem?.productId) {
-      //     kotPayload.push(kotItem);
-      //   }
-      // });
-
-      // itemData.kotData = kotPayload
       const steward = await this.findOneByStewardNo(itemData.stewardNo);
 
-      if(steward) {
+      if (steward) {
         itemData.kotNo = generateRandomNumber(8);
 
         const response = await this.prisma.kot.create({
           data: itemData,
           include: {
             table: true,
+            // billing:true
           },
         });
+        // if (response.billing) {
+        //   const billingId = response.billing.id;
+        //   await this.prisma.billing.update({
+        //     where: { id: billingId },
+        //     data: { lastVoidBillAt: new Date() },
+        //   });
+        // }
 
         const list = await this.addProductsDataInKotInfo([response]);
         response.kotData = list;
-  
-        const { isKitchenPrinterSuccess, isBarPrinterSuccess } = await printBilReceipt(response, steward, "kot");
+
+        const { isKitchenPrinterSuccess, isBarPrinterSuccess } =
+          await printBilReceipt(response, steward, "kot");
         return { ...response, isKitchenPrinterSuccess, isBarPrinterSuccess };
       } else {
         let response = {
           message: "Incorrect steward number!",
-          error: true
-        }
+          error: true,
+        };
         return { ...response };
       }
-      
     } catch (error) {
       console.debug(error, "\n cannot create Kot \n");
       return error;
@@ -110,6 +74,44 @@ export class KotService {
       return kot;
     } catch (err) {
       console.debug(err, "Cannot get all kot");
+    }
+  }
+
+  async getAllKots() {
+    try {
+      const kotsWithTables = await this.prisma.kot.findMany({
+        include: {
+          table: true,
+        },
+      });
+
+      for (const kot of kotsWithTables) {
+        if (kot.kotData && kot.kotData.length > 0) {
+          const populatedKotData = await Promise.all(
+            kot.kotData.map(async (kotItem) => {
+              const product = await this.prisma.products.findUnique({
+                where: {
+                  id: kotItem.productId,
+                },
+              });
+
+              if (product) {
+                return {
+                  ...kotItem,
+                  product: product,
+                };
+              } else {
+                return kotItem;
+              }
+            })
+          );
+          kot.kotData = populatedKotData;
+        }
+      }
+
+      return kotsWithTables;
+    } catch (err) {
+      console.debug(err, "Cannot get all kot with tables");
     }
   }
 
@@ -326,45 +328,42 @@ export class KotService {
       const hasPayloadToUpdate = !updateKotItemPayload?.kotData?.length;
       if (hasPayloadToUpdate) return;
 
-      const requests = updateKotItemPayload?.kotData?.map(async (info) => {
-        const { id, ...rest } = info;
+      const commonId = updateKotItemPayload.kotData[0]?.id;
 
-        const foundKot = await this.prisma.kot.findFirst({
-          where: {
-            id,
-          },
-        });
-        const kotData = foundKot?.kotData;
+      if (!commonId) {
+        console.error("Common id not found in the payload.");
+        return;
+      }
 
-        const kotDataIndex = foundKot.kotData.findIndex(
-          (kotInfo) => kotInfo.productId === rest.productId
+      const foundKot = await this.prisma.kot.findFirst({
+        where: {
+          id: commonId,
+        },
+      });
+
+      const kotData = foundKot?.kotData;
+
+      updateKotItemPayload.kotData.forEach((item) => {
+        const kotDataIndex = kotData.findIndex(
+          (kotInfo) => kotInfo.productId === item.productId
         );
 
-        const isQuantityReduced =
-          info.quantity < foundKot?.kotData[kotDataIndex]?.quantity;
-
-        if (isQuantityReduced) {
-          kotData[kotDataIndex].quantity = info.quantity;
-        } else {
+        if (kotDataIndex !== -1) {
           kotData[kotDataIndex].isCanceled = true;
           kotData[kotDataIndex].canceledBy = updateKotItemPayload?.canceledBy;
           kotData[kotDataIndex].canceledReason =
             updateKotItemPayload?.canceledReason;
         }
-
-        return this.prisma.kot.update({
-          where: {
-            id: foundKot.id,
-          },
-          data: {
-            kotData,
-          },
-        });
       });
 
-      return (await Promise.allSettled(requests)).map(
-        (data: any) => data?.value
-      );
+      return this.prisma.kot.update({
+        where: {
+          id: foundKot.id,
+        },
+        data: {
+          kotData,
+        },
+      });
     } catch (err) {
       console.error("Failed to update item", err);
     }

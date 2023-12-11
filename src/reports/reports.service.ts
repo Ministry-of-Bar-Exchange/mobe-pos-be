@@ -118,4 +118,116 @@ export class ReportsService {
       throw new HttpException(message, status);
     }
   }
+
+  async getCancelKotAllItems(filters: CommonObjectType) {
+    try {
+      const whereClause: any = {};
+
+      if (filters?.fromDate) {
+        whereClause.createdAt = {
+          gte: new Date(filters.fromDate),
+        };
+      }
+
+      if (filters?.toDate) {
+        if (!whereClause.createdAt) {
+          whereClause.createdAt = {};
+        }
+        whereClause.createdAt.lte = new Date(filters.toDate);
+      }
+
+      if (filters?.kotNo) {
+        whereClause.kotNo = filters.kotNo;
+      }
+
+      const response = await this.prisma.kot.findMany({
+        where: {
+          ...whereClause,
+          kotData: {
+            some: {
+              isCanceled: true,
+            },
+          },
+        },
+        include: {
+          table: true,
+          billing: true,
+        },
+      });
+      const data = response?.flatMap((item) => {
+        const { createdAt, kotNo, kotData, ...rest } = item;
+        const filteredKotData = kotData?.filter(
+          (cancelKot) => cancelKot?.isCanceled === true
+        );
+        return filteredKotData?.length
+          ? [{ createdAt, kotNo, kotData: filteredKotData, ...rest }]
+          : [];
+      });
+
+      return data;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+   async getReprintedByDate(filters: CommonObjectType) {
+    try {
+      const whereClause: any = {
+        isBillPrinted: true,
+      };
+
+      if (filters?.fromDate !== "") {
+        whereClause.lastPrinted = {
+          gte: filters.fromDate,
+        };
+      }
+
+      if (filters?.toDate !== "") {
+        if (!whereClause.lastPrinted) {
+          whereClause.lastPrinted = {};
+        }
+        whereClause.lastPrinted.lte = filters?.toDate;
+      }
+
+      const billingData = await this.prisma.billing.findMany({
+        where: whereClause,
+      });
+
+      return billingData;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async getComplimentaryDataByDate(filters: CommonObjectType) {
+    try {
+      const whereClause: any = {
+        status: "COMPLEMENTARY",
+      };
+
+      if (filters?.fromDate !== "") {
+        whereClause.createdAt = {
+          gte: filters.fromDate,
+        };
+      }
+
+      if (filters?.toDate !== "") {
+        if (!whereClause.createdAt) {
+          whereClause.createdAt = {};
+        }
+        whereClause.createdAt.lte = filters?.toDate;
+      }
+
+      const billingData = await this.prisma.billing.findMany({
+        where: whereClause,
+      });
+
+      return billingData;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status );
+    }
+  }
 }
