@@ -129,6 +129,7 @@ model Billing {
   stewardNo      String?
   isBillPrinted  Boolean?  @default(false)
   lastPrinted    DateTime?  @default(now())
+  lastVoidBillAt DateTime?  @default(now())
 }
 
 model Tables {

@@ -7,17 +7,17 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get()
-  getAllItems(@Query() filters: any) {
+  getAllItems(@Query() filters: CommonObjectType) {
     return this.reportsService.getAllItems(filters);
   }
 
   @Get("/steward")
-  getAllSaleBySteward(@Query() filters: any) {
+  getAllSaleBySteward(@Query() filters: CommonObjectType) {
     return this.reportsService.getAllSaleBySteward(filters);
   }
 
   @Get("/table")
-  getAllSaleByTable(@Query() filters: any) {
+  getAllSaleByTable(@Query() filters: CommonObjectType) {
     return this.reportsService.getAllSaleByTable(filters);
   }
   @Get("/voidBillReports")
@@ -42,5 +42,10 @@ export class ReportsController {
   @Get("/complimentary")
   getComplimentaryDataByDate(@Query() filters: CommonObjectType) {
     return this.reportsService.getComplimentaryDataByDate(filters);
+  }
+
+  @Get("items")
+  getAllItemSummary(@Query() filters: CommonObjectType) {
+    return this.reportsService.getAllItemSummary(filters);
   }
 }

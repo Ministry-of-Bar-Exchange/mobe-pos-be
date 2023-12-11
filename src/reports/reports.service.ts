@@ -27,6 +27,9 @@ export class ReportsService {
 
       const response = await this.prisma.billing.findMany({
         where: whereClause,
+        include: {
+          table: true
+        }
       });
 
       return response;
@@ -287,6 +290,50 @@ export class ReportsService {
     } catch (error) {
       const { message, status } = error;
       throw new HttpException(message, status );
+    }
+  }
+  
+  async getAllItemSummary(filters: CommonObjectType) {
+    try {
+      const whereClause: any = {
+        status: "SETTLED",
+      };
+
+      if (filters?.fromDate !== "") {
+        whereClause.createdAt = {
+          gte: filters.fromDate,
+        };
+      }
+
+      if (filters?.toDate !== "") {
+        if (!whereClause.createdAt) {
+          whereClause.createdAt = {};
+        }
+        whereClause.createdAt.lte = filters?.toDate;
+      }
+
+      const response = await this.prisma.billing.findMany({
+        where: whereClause,
+      });
+
+      const itemSummary = response
+        .map((billing: any) => {
+          return billing?.products?.map((product) => {
+            return {
+              category: product.product.category.name,
+              itemCode: product.product.code,
+              itemName: product.product.name,
+              quantity: product.quantity,
+              amount: product.amount,
+            };
+          });
+        })
+        .flat();
+
+      return itemSummary;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
     }
   }
 }
