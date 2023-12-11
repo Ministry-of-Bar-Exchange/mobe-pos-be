@@ -26,6 +26,7 @@ export class KotService {
           include: {
             table: true,
             billing: true,
+            // billing:true
           },
         });
         if (response.billing) {
@@ -35,6 +36,13 @@ export class KotService {
             data: { lastVoidBillAt: new Date() },
           });
         }
+        // if (response.billing) {
+        //   const billingId = response.billing.id;
+        //   await this.prisma.billing.update({
+        //     where: { id: billingId },
+        //     data: { lastVoidBillAt: new Date() },
+        //   });
+        // }
 
         const list = await this.addProductsDataInKotInfo([response]);
         response.kotData = list;
@@ -115,6 +123,44 @@ export class KotService {
       }
 
       return unsettledKots;
+    } catch (err) {
+      console.debug(err, "Cannot get all kot with tables");
+    }
+  }
+
+  async getAllKots() {
+    try {
+      const kotsWithTables = await this.prisma.kot.findMany({
+        include: {
+          table: true,
+        },
+      });
+
+      for (const kot of kotsWithTables) {
+        if (kot.kotData && kot.kotData.length > 0) {
+          const populatedKotData = await Promise.all(
+            kot.kotData.map(async (kotItem) => {
+              const product = await this.prisma.products.findUnique({
+                where: {
+                  id: kotItem.productId,
+                },
+              });
+
+              if (product) {
+                return {
+                  ...kotItem,
+                  product: product,
+                };
+              } else {
+                return kotItem;
+              }
+            })
+          );
+          kot.kotData = populatedKotData;
+        }
+      }
+
+      return kotsWithTables;
     } catch (err) {
       console.debug(err, "Cannot get all kot with tables");
     }

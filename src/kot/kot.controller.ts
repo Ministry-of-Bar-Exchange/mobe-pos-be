@@ -24,6 +24,11 @@ export class KotController {
     return this.kotService.getAllKots();
   }
 
+  @Get("all")
+  getAllKots() {
+    return this.kotService.getAllKots();
+  }
+
   @Get(":id")
   readCategory(@Param("id") id: string) {
     return this.kotService.read(id);

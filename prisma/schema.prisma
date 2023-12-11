@@ -127,8 +127,8 @@ model Billing {
   billClosedBy   String?    @default("")
   payment        Payment?
   stewardNo      String?
-  isBillPrinted  Boolean?    @default(false)
-  lastVoidBillAt DateTime?   @updatedAt
+  isBillPrinted  Boolean?  @default(false)
+  lastPrinted    DateTime?  @default(now())
 }
 
 model Tables {

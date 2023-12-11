@@ -11,12 +11,12 @@ export class ReportsController {
     return this.reportsService.getAllItems(filters);
   }
 
-  @Get('/steward')
+  @Get("/steward")
   getAllSaleBySteward(@Query() filters: any) {
     return this.reportsService.getAllSaleBySteward(filters);
   }
 
-  @Get('/table')
+  @Get("/table")
   getAllSaleByTable(@Query() filters: any) {
     return this.reportsService.getAllSaleByTable(filters);
   }
@@ -28,5 +28,19 @@ export class ReportsController {
   @Get("/discountReports")
   getAllDiscountReports(@Query() filters: CommonObjectType) {
     return this.reportsService.getAllDiscountReports(filters);
+  }
+
+  @Get("/cancelkot")
+  getCancelKotAllItems(@Query() filters: CommonObjectType) {
+    return this.reportsService.getCancelKotAllItems(filters);
+  }
+
+  @Get("/billreprint")
+  getReprintedByDate(@Query() filters: CommonObjectType) {
+    return this.reportsService.getReprintedByDate(filters);
+  }
+  @Get("/complimentary")
+  getComplimentaryDataByDate(@Query() filters: CommonObjectType) {
+    return this.reportsService.getComplimentaryDataByDate(filters);
   }
 }
