@@ -118,4 +118,63 @@ export class ReportsService {
       throw new HttpException(message, status);
     }
   }
+
+  async getAllVoidReports(filters: CommonObjectType) {
+    try {
+      const whereClause: any = {
+        status: "VOID",
+      };
+
+      if (filters?.fromDate !== "") {
+        whereClause.lastVoidBillAt = {
+          gte: filters.fromDate,
+        };
+      }
+
+      if (filters?.toDate !== "") {
+        if (!whereClause.lastVoidBillAt) {
+          whereClause.lastVoidBillAt = {};
+        }
+        whereClause.lastVoidBillAt.lte = filters?.toDate;
+      }
+
+      const billingData = await this.prisma.billing.findMany({
+        where: whereClause,
+      });
+
+      return billingData;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+  async getAllDiscountReports(filters: CommonObjectType) {
+    try {
+      const whereClause: any = {
+        status: "SETTLED",
+      };
+
+      if (filters?.fromDate !== "") {
+        whereClause.updatedAt = {
+          gte: filters.fromDate,
+        };
+      }
+
+      if (filters?.toDate !== "") {
+        if (!whereClause.updatedAt) {
+          whereClause.updatedAt = {};
+        }
+        whereClause.updatedAt.lte = filters?.toDate;
+      }
+
+      const billingData = await this.prisma.billing.findMany({
+        where: whereClause,
+      });
+
+      return billingData;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
 }

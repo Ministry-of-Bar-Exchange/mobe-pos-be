@@ -20,4 +20,13 @@ export class ReportsController {
   getAllSaleByTable(@Query() filters: any) {
     return this.reportsService.getAllSaleByTable(filters);
   }
+  @Get("/voidBillReports")
+  getAllVoidReports(@Query() filters: CommonObjectType) {
+    return this.reportsService.getAllVoidReports(filters);
+  }
+
+  @Get("/discountReports")
+  getAllDiscountReports(@Query() filters: CommonObjectType) {
+    return this.reportsService.getAllDiscountReports(filters);
+  }
 }
