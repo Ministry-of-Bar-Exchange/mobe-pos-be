@@ -28,8 +28,8 @@ export class ReportsService {
       const response = await this.prisma.billing.findMany({
         where: whereClause,
         include: {
-          table: true
-        }
+          table: true,
+        },
       });
 
       return response;
@@ -216,7 +216,35 @@ export class ReportsService {
           billing: true,
         },
       });
-      const data = response?.flatMap((item) => {
+      const unsettledKots = response.filter((kot) => {
+        return kot.billing?.status !== "SETTLED";
+      });
+
+      for (const kot of unsettledKots) {
+        if (kot.kotData && kot.kotData.length > 0) {
+          const populatedKotData = await Promise.all(
+            kot.kotData.map(async (kotItem) => {
+              const product = await this.prisma.products.findUnique({
+                where: {
+                  id: kotItem.productId,
+                },
+              });
+
+              if (product) {
+                return {
+                  ...kotItem,
+                  product: product,
+                };
+              } else {
+                return kotItem;
+              }
+            })
+          );
+          kot.kotData = populatedKotData;
+        }
+      }
+
+      const data = unsettledKots?.flatMap((item) => {
         const { createdAt, kotNo, kotData, ...rest } = item;
         const filteredKotData = kotData?.filter(
           (cancelKot) => cancelKot?.isCanceled === true
@@ -289,10 +317,10 @@ export class ReportsService {
       return billingData;
     } catch (error) {
       const { message, status } = error;
-      throw new HttpException(message, status );
+      throw new HttpException(message, status);
     }
   }
-  
+
   async getAllItemSummary(filters: CommonObjectType) {
     try {
       const whereClause: any = {
