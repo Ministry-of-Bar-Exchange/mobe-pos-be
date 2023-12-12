@@ -261,7 +261,7 @@ export class ReportsService {
     }
   }
 
-   async getReprintedByDate(filters: CommonObjectType) {
+  async getReprintedByDate(filters: CommonObjectType) {
     try {
       const whereClause: any = {
         isBillPrinted: true,
@@ -359,6 +359,124 @@ export class ReportsService {
         .flat();
 
       return itemSummary;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async getAllItemComplementary(filters: CommonObjectType) {
+    try {
+      const whereClause: any = {
+        status: "COMPLEMENTARY",
+      };
+
+      if (filters?.fromDate !== "") {
+        whereClause.createdAt = {
+          gte: filters.fromDate,
+        };
+      }
+
+      if (filters?.toDate !== "") {
+        if (!whereClause.createdAt) {
+          whereClause.createdAt = {};
+        }
+        whereClause.createdAt.lte = filters?.toDate;
+      }
+
+      const response = await this.prisma.billing.findMany({
+        where: whereClause,
+      });
+
+      return response;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async getAllItemSummaryComplementary(filters: CommonObjectType) {
+    try {
+      const whereClause: any = {
+        status: "COMPLEMENTARY",
+      };
+
+      if (filters?.fromDate !== "") {
+        whereClause.createdAt = {
+          gte: filters.fromDate,
+        };
+      }
+
+      if (filters?.toDate !== "") {
+        if (!whereClause.createdAt) {
+          whereClause.createdAt = {};
+        }
+        whereClause.createdAt.lte = filters?.toDate;
+      }
+
+      const response: any = await this.prisma.billing.findMany({
+        where: whereClause,
+        select: {
+          products: true,
+          table: true,
+        },
+      });
+
+      // Passing only values that required/displaying on Frontend
+      let result = [];
+      response.map((item) => {
+        item?.products?.map((prod) => {
+          result.push({
+            ...prod,
+            table: item.table,
+          });
+        });
+      });
+
+      return result;
+    } catch (error) {
+      const { message, status } = error;
+      throw new HttpException(message, status);
+    }
+  }
+
+  async getAllOptions() {
+    try {
+      const category = await this.prisma.category.findMany({
+        where: {
+          isDeleted: false,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+      const products = await this.prisma.products.findMany({
+        where: {
+          isDeleted: false,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+      const subCategory = await this.prisma.subcategory.findMany({
+        where: {
+          isDeleted: false,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+
+      const response = {
+        category,
+        products,
+        subCategory,
+      };
+
+      return response;
     } catch (error) {
       const { message, status } = error;
       throw new HttpException(message, status);

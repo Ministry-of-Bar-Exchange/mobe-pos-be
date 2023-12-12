@@ -48,4 +48,19 @@ export class ReportsController {
   getAllItemSummary(@Query() filters: CommonObjectType) {
     return this.reportsService.getAllItemSummary(filters);
   }
+
+  @Get("/nc")
+  getAllItemComplementary(@Query() filters: CommonObjectType) {
+    return this.reportsService.getAllItemComplementary(filters);
+  }
+  @Get("/nc-summary")
+  getAllItemSummaryComplementary(@Query() filters: CommonObjectType) {
+    return this.reportsService.getAllItemSummaryComplementary(filters);
+  }
+
+  @Get("options")
+  getAllOptions() {
+    return this.reportsService.getAllOptions();
+  }
+  
 }
