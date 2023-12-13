@@ -16,21 +16,26 @@ export class TablesService {
     const presentTables = await this.prisma.tables.findMany({});
 
     await Promise.all([
-      (toCreate || defaultTable) && this.createTables(toCreate, toHide, presentTables, defaultTable),
+      (toCreate || defaultTable) &&
+        this.createTables(toCreate, toHide, presentTables, defaultTable),
       toHide && this.hideTables(toHide, presentTables),
       toUnhide && this.unhideTables(toUnhide, presentTables),
     ]);
 
     return { success: true };
   }
-  
+
   async createTables(toCreate, toHide, presentTables, defaultTable) {
     const defaultArray = new Array(defaultTable).fill(null);
     let tablesListToCreate;
-  
+
     if (toCreate?.length) {
       tablesListToCreate = toCreate
-        .filter((info) => !toHide.includes(info) && !presentTables.some((table) => table.code === info))
+        .filter(
+          (info) =>
+            !toHide.includes(info) &&
+            !presentTables.some((table) => table.code === info)
+        )
         .map((info) => ({
           code: info,
         }));
@@ -40,20 +45,22 @@ export class TablesService {
         code: `${index + 1}`,
       }));
     }
-  
+
     if (tablesListToCreate?.length) {
       await this.prisma.tables.createMany({
         data: tablesListToCreate,
       });
     }
   }
-  
+
   async hideTables(toHide, presentTables) {
     const dataToHideUpdate = toHide
       .filter((info) => presentTables.some((table) => table.code === info))
       .map(async (infoToHide) => {
-        const foundTable = presentTables.find((table) => table.code === infoToHide);
-  
+        const foundTable = presentTables.find(
+          (table) => table.code === infoToHide
+        );
+
         return this.prisma.tables.update({
           where: {
             id: foundTable.id,
@@ -61,18 +68,20 @@ export class TablesService {
           data: { isDeleted: true },
         });
       });
-  
+
     if (dataToHideUpdate?.length) {
       await Promise.all(dataToHideUpdate);
     }
   }
-  
+
   async unhideTables(toUnhide, presentTables) {
     const dataToUnhideUpdate = toUnhide
       .filter((info) => presentTables.some((table) => table.code === info))
       .map(async (infoToUnhide) => {
-        const foundTable = presentTables.find((table) => table.code === infoToUnhide);
-  
+        const foundTable = presentTables.find(
+          (table) => table.code === infoToUnhide
+        );
+
         return this.prisma.tables.update({
           where: {
             id: foundTable.id,
@@ -80,14 +89,47 @@ export class TablesService {
           data: { isDeleted: false },
         });
       });
-  
+
     if (dataToUnhideUpdate?.length) {
       await Promise.all(dataToUnhideUpdate);
     }
   }
 
   async findAll() {
-    return this.prisma.tables.findMany({});
+    const data = await this.prisma.tables.findMany({
+      select: {
+        id: true,
+        code: true,
+        isDeleted: true,
+        updatedAt: true,
+        createdAt: true,
+        billing: {
+          select: {
+            isBillPrinted: true
+          }
+        },
+      },
+    });
+  
+    const result = data.map(item => {
+      let value = false;
+      item.billing?.map(billingItem =>  {
+        if(billingItem.isBillPrinted) {
+          value = billingItem.isBillPrinted
+          return;
+        }
+      })
+      return {
+        id: item.id,
+        code: item.code,
+        isDeleted: item.isDeleted,
+        updatedAt: item.updatedAt,
+        createdAt: item.createdAt,
+        isBillPrinted: value,
+      };
+    });
+  
+    return result;
   }
 
   findOne(id: string) {
