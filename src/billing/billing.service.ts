@@ -68,6 +68,9 @@ export class BillingService {
           },
           ...filters,
         },
+        include: {
+          table: true,
+        },
       });
 
       const billingId = billing?.id;
@@ -122,5 +125,57 @@ export class BillingService {
     } catch (error) {
       console.log("Unable to print bill", error);
     }
+  }
+  async updateTables(updateBillingDto) {
+    try {
+      const fromTable = await this.prisma.tables.findFirst({
+        where: {
+          code: String(updateBillingDto?.from),
+        },
+      });
+      const toTable = await this.prisma.tables.findFirst({
+        where: {
+          code: String(updateBillingDto?.to),
+        },
+      });
+
+      
+
+      return { fromTable, toTable };
+    } catch (e) {
+      console.log("error occurred during shifting table.");
+    }
+    // try {
+    //   const fromTable = await this.prisma.tables.findFirst({
+    //     where: {
+    //       code: String(updateBillingDto?.from),
+    //     },
+    //   });
+
+    //   const updateCurrentTable = await this.prisma.kot.findMany({
+    //     where: {
+    //       tableId: fromTable?.id,
+    //     },
+    //   });
+
+    //   // Filter kotData array for each item in updateCurrentTable
+    //   let array = [];
+    //   updateCurrentTable.map((item) => {
+    //     updateBillingDto?.kotData?.map(async (kot: any) => {
+    //       if (kot.kotId != item.id) {
+    //         item.kotData.map((prod:any) => {
+    //           if(kot.productId != prod.productId) {
+    //             array.push(prod)
+    //           }
+    //         })
+    //       }
+    //     });
+    //   });
+
+    //   return array;
+    // } catch (error) {
+    //   const { message, status } = error;
+    //   throw new HttpException(message, status);
+    // }
   }
 }

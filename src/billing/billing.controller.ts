@@ -48,6 +48,12 @@ export class BillingController {
     return this.billingService.handlePrintBill(id, updateBillingDto);
   }
 
+  @Post('shift')
+  updateTables(@Body() updateBillingDto: any) {
+    return this.billingService.updateTables(updateBillingDto);
+  }
+
+
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateBillingDto: Partial<Billing>) {
     return this.billingService.update(id, updateBillingDto);

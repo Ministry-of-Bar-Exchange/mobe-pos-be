@@ -34,6 +34,11 @@ export class KotController {
     return this.kotService.readByTableCode(code);
   }
 
+  @Get('table-kot/:code')
+  readKotDataByTableCode(@Param('code') code: string) {
+    return this.kotService.readKotDataByTableCode(code);
+  }
+
   @Post()
   createKot(@Body() createItemDto: Kot) {
     return this.kotService.createKot(createItemDto);

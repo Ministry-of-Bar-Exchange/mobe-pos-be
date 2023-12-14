@@ -407,4 +407,38 @@ export class KotService {
     const response = await this.prisma.kot.deleteMany();
     return response;
   }
+
+  async readKotDataByTableCode(code: string) {
+    try {
+      const response = await this.prisma.kot.findMany({
+        include: {
+          table: true,
+        },
+        where: {
+          table: {
+            code,
+          },
+          billing: {
+            status: "UNSETTLED"
+          }
+        },
+      });
+
+      const structuredResponse = response?.map(async (kotData) => {
+        const list = await this.addProductsDataInKotWithDuplicateRecords([
+          kotData,
+        ]);
+        const filteredKotList = list.filter((kotItem) => {
+          return !kotItem.isCanceled;
+        });
+        return { ...kotData, kotData: filteredKotList };
+      });
+
+      return (await Promise.allSettled(structuredResponse)).map(
+        (info: any) => info?.value
+      );
+    } catch (err) {
+      console.debug(err, "Could not find kot");
+    }
+  }
 }
