@@ -419,7 +419,8 @@ export class KotService {
             code,
           },
           billing: {
-            status: "UNSETTLED"
+            status: "UNSETTLED",
+            isBillPrinted:false
           }
         },
       });

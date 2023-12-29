@@ -50,8 +50,15 @@ export class BillingController {
 
   @Post('shift')
   updateTables(@Body() updateBillingDto: any) {
-    return this.billingService.updateTables(updateBillingDto);
+    return this.billingService.shiftBillingTable(updateBillingDto);
   }
+
+  @Post('shiftItem')
+  updateItem(@Body() updateBillingDto: any) {
+    return this.billingService.shiftItem(updateBillingDto);
+  }
+
+
 
 
   @Patch(":id")

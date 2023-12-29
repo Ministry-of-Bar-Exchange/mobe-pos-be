@@ -4,7 +4,7 @@ import { Billing } from "@prisma/client";
 import { KotService } from "kot/kot.service";
 import { printBilReceipt } from "utils/printer";
 import { generateRandomNumber } from "utils/common";
-import { CommonObjectType } from "types";
+import { CommonObjectType, UpdateKotItemListType } from "types";
 
 @Injectable()
 export class BillingService {
@@ -126,56 +126,185 @@ export class BillingService {
       console.log("Unable to print bill", error);
     }
   }
-  async updateTables(updateBillingDto) {
+
+  async shiftItem(updateBillingDto) {
     try {
       const fromTable = await this.prisma.tables.findFirst({
         where: {
           code: String(updateBillingDto?.from),
         },
       });
+      if (!fromTable) {
+        throw new HttpException("No current table found", 400);
+      }
+
       const toTable = await this.prisma.tables.findFirst({
         where: {
           code: String(updateBillingDto?.to),
         },
       });
 
-      
+      if (!toTable) {
+        throw new HttpException("No bill found to shift table", 400);
+      }
 
-      return { fromTable, toTable };
+      const billingFromShift: any = await this.prisma.billing.findFirst({
+        where: {
+          tableId: fromTable?.id,
+          status: "UNSETTLED",
+          isBillPrinted: false,
+        },
+      });
+      if (!billingFromShift) {
+        throw new HttpException(
+          `Table No.${updateBillingDto?.from} bill is printed.`,
+          400
+        );
+      }
+      const tableAlreadyOccupied = await this.prisma.billing.findFirst({
+        where: {
+          tableId: toTable?.id,
+          status: "UNSETTLED",
+          isBillPrinted: false,
+        },
+      });
+      if (!tableAlreadyOccupied) {
+        throw new HttpException(
+          `Person at table ${updateBillingDto?.to} has left the bar.`,
+          400
+        );
+      }
+
+      const kotInfo = await this.prisma.kot.findFirst({
+        where: {
+          billingId: billingFromShift?.id,
+        },
+      });
+      const deletedData = [];
+      if (kotInfo) {
+        kotInfo.kotData = kotInfo.kotData.filter((kotItem) => {
+          const isDeleted = updateBillingDto.kotData.some((updateItem) => {
+            if (updateItem.productId === kotItem.productId) {
+              deletedData.push(kotItem);
+              return true;
+            }
+            return false;
+          });
+
+          return !isDeleted;
+        });
+
+        await this.prisma.kot.update({
+          where: {
+            id: kotInfo.id,
+          },
+          data: {
+            kotData: kotInfo.kotData,
+          },
+        });
+      }
+
+      const kotToData = await this.prisma.kot.findFirst({
+        where: {
+          billingId: tableAlreadyOccupied?.id,
+        },
+      });
+
+      if (kotToData) {
+        const updatedKotData = [...kotToData.kotData, ...deletedData];
+
+        await this.prisma.kot.update({
+          where: {
+            id: kotToData.id,
+          },
+          data: {
+            kotData: updatedKotData,
+          },
+        });
+      }
+      const status = "Item shifted sucessfully";
+      return { status };
     } catch (e) {
-      console.log("error occurred during shifting table.");
+      const { message, status } = e;
+      throw new HttpException(message, status);
     }
-    // try {
-    //   const fromTable = await this.prisma.tables.findFirst({
-    //     where: {
-    //       code: String(updateBillingDto?.from),
-    //     },
-    //   });
+  }
 
-    //   const updateCurrentTable = await this.prisma.kot.findMany({
-    //     where: {
-    //       tableId: fromTable?.id,
-    //     },
-    //   });
+  async shiftBillingTable(updateBillingDto) {
+    try {
+      const fromTable = await this.prisma.tables.findFirst({
+        where: {
+          code: String(updateBillingDto?.from),
+        },
+      });
+      if (!fromTable) {
+        throw new HttpException("No current table found", 400);
+      }
 
-    //   // Filter kotData array for each item in updateCurrentTable
-    //   let array = [];
-    //   updateCurrentTable.map((item) => {
-    //     updateBillingDto?.kotData?.map(async (kot: any) => {
-    //       if (kot.kotId != item.id) {
-    //         item.kotData.map((prod:any) => {
-    //           if(kot.productId != prod.productId) {
-    //             array.push(prod)
-    //           }
-    //         })
-    //       }
-    //     });
-    //   });
+      const toTable = await this.prisma.tables.findFirst({
+        where: {
+          code: String(updateBillingDto?.to),
+        },
+      });
 
-    //   return array;
-    // } catch (error) {
-    //   const { message, status } = error;
-    //   throw new HttpException(message, status);
-    // }
+      if (!toTable) {
+        throw new HttpException("No table to shift found", 400);
+      }
+
+      const billingToShift: any = await this.prisma.billing.findFirst({
+        where: {
+          tableId: fromTable?.id,
+          status: "UNSETTLED",
+          isBillPrinted: false,
+        },
+      });
+      if (!billingToShift) {
+        throw new HttpException("Select other current table.", 400);
+      }
+
+      const tableAlreadyOccupied = await this.prisma.billing.findFirst({
+        where: {
+          tableId: toTable?.id,
+          status: "UNSETTLED",
+        },
+      });
+      if (tableAlreadyOccupied) {
+        throw new HttpException(
+          "Table already Occupied. Cannot shift billing table.",
+          400
+        );
+      }
+
+      const updatedBilling = await this.prisma.billing.update({
+        where: {
+          id: billingToShift?.id,
+        },
+        data: {
+          tableId: toTable?.id,
+        },
+      });
+
+      const kotInfo = await this.prisma.kot.findFirst({
+        where: {
+          billingId: billingToShift?.id,
+        },
+      });
+
+      const updatedKot: any = await this.prisma.kot.update({
+        where: {
+          id: kotInfo?.id,
+        },
+        data: {
+          tableId: toTable?.id,
+        },
+      });
+
+      const Status = "Table shifted succesfully";
+
+      return { Status };
+    } catch (e) {
+      const { message, status } = e;
+      throw new HttpException(message, status);
+    }
   }
 }
