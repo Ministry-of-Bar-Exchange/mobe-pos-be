@@ -9,17 +9,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+type Restaurant {
+  phone            String?
+  address          String?
+  taxId            String?
+  taxIdType        String?
+  discountPassword String?
+  outletName       String?
+  firmName         String?
+  isDeleted        Boolean? @default(false)
+  taxes            Taxes[]
+}
+
+type Taxes {
+  type       String
+  percentage Float
+}
+
 model User {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  restaurant Restaurant?
   name       String
   email      String
-  phone      String
-  gender     String
-  employeeId String
+  phone      String?
+  gender     String?
+  stewardNo  String?
   password   String
-  role       String   @default("staff")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  department String?
+  profile    String?
+  role       String      @default("staff")
+  createdAt  DateTime?   @default(now())
+  updatedAt  DateTime?   @updatedAt
+  isDeleted  Boolean?    @default(false)
 
   @@unique([email])
 }
@@ -66,20 +87,49 @@ model Products {
   isDeleted     Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  OrderItem     OrderItem[]
+}
+
+type CardInfo {
+  number String @default("")
+  amount Float
+  bank   String @default("")
+}
+
+type Payment {
+  cashAmount       Float?
+  creditCardAmount Float?
+  chequeAmount     Float?
+  cards            CardInfo[]
+  balance          Float?
 }
 
 model Billing {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  phone     String
-  itemList  OrderItem[]
-  status    String      @default("void")
-  tableId   String      @db.ObjectId
-  table     Tables      @relation(fields: [tableId], references: [id])
-  isDeleted Boolean     @default(false)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  phone          String
+  billNo         String
+  products       Json       @default("[]")
+  kotList        Kot[]
+  subTotal       Float      @default(0)
+  discount       Float      @default(0)
+  tax            Float      @default(0)
+  netAmount      Float      @default(0)
+  status         BillStatus @default(UNSETTLED)
+  tableId        String     @db.ObjectId
+  table          Tables     @relation(fields: [tableId], references: [id])
+  isDeleted      Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  foodDiscount   Float      @default(0)
+  barDiscount    Float      @default(0)
+  discountReason String?    @default("")
+  billReason     String?    @default("")
+  billClosedBy   String?    @default("")
+  payment        Payment?
+  stewardNo      String?
+  isBillPrinted  Boolean?  @default(false)
+  lastPrinted    DateTime?  @default(now())
+  lastVoidBillAt DateTime?  @default(now())
 }
 
 model Tables {
@@ -89,16 +139,47 @@ model Tables {
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  Kot       Kot[]
 }
 
-model OrderItem {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  quantity  Int
-  productId String   @db.ObjectId
-  product   Products @relation(fields: [productId], references: [id])
-  billingId String?  @db.ObjectId
-  Billing   Billing? @relation(fields: [billingId], references: [id])
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Kot {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  status    KotStatus @default(ORDER_CONFIRMED)
+  kotData   KotItem[]
+  kotNo     String
+  modifier  String?
+  stewardNo String?
+  billingId String?   @db.ObjectId
+  billing   Billing?  @relation(fields: [billingId], references: [id])
+  tableId   String?   @db.ObjectId
+  table     Tables?   @relation(fields: [tableId], references: [id])
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+type KotItem {
+  productId      String  @db.ObjectId
+  quantity       Int
+  modifier       String? @default("")
+  isCanceled     Boolean @default(false)
+  canceledBy     String  @default("")
+  canceledReason String  @default("")
+}
+
+type OrderedProducts {
+  products Json
+  quantity Int
+}
+
+enum BillStatus {
+  UNSETTLED
+  SETTLED
+  VOID
+  COMPLEMENTARY
+}
+
+enum KotStatus {
+  ORDER_CONFIRMED
+  ORDER_CANCELED
 }

@@ -50,6 +50,7 @@ export class AuthService {
             name: particularUser?.name,
             phone: particularUser?.phone,
             gender: particularUser?.gender,
+            userId: particularUser?.id,
           };
           console.log(response);
           return response;

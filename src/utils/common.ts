@@ -26,3 +26,9 @@ export const replaceSpaceAndSpecialChars = (str: string, replacer = "") =>
 
 export const replaceSpecialCharsFromTax = (str: string, replacer = "") =>
   str.replace(/[@%]+/g, replacer);
+
+export const generateRandomNumber = (length: number = 4) => {
+  return Date.now()
+    .toString()
+    .slice(12 - (length - 1));
+};

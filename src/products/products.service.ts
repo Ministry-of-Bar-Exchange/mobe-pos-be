@@ -128,6 +128,22 @@ export class ProductsService {
     }
   }
 
+  async getProductsFromIdsArray(productIdsList: string[]) {
+    const products = await this.prisma.products.findMany({
+      where: {
+        id: {
+          in: productIdsList,
+        },
+      },
+      include: {
+        category: true,
+        subcategory: true,
+      },
+    });
+
+    return products;
+  }
+
   async read(id: string) {
     try {
       const response = await this.prisma.products.findUnique({
@@ -171,58 +187,6 @@ export class ProductsService {
       console.debug("Failed to update item", err);
     }
   }
-
-  // async handleUpdateItemQuantity(updateItemDto: UpdateItemQuantity) {
-  //   const itemId = updateItemDto.itemId;
-  //   const action = updateItemDto["action"] || "increment";
-
-  //   const quantityToBeUpdated = updateItemDto?.quantity;
-
-  //   if (!quantityToBeUpdated) {
-  //     throw new HttpException("Bad Request", HttpStatus.BAD_REQUEST);
-  //   }
-
-  //   try {
-  //     const response = await this.prisma.products.update({
-  //       where: {
-  //         id: itemId,
-  //       },
-  //       data: {
-  //         quantity: {
-  //           [action]: Number(quantityToBeUpdated),
-  //         },
-  //       },
-  //     });
-  //   } catch (err) {
-  //     console.debug("Failed to update item", err);
-  //   }
-  // }
-
-  // async updateItemQuantity(itemId: string, quantity: string) {
-  //   const particularItem: any = await this.findOneItem(itemId);
-  //   const updatedQuantity =
-  //     parseInt(particularItem[0]?.quantity) - parseInt(quantity);
-  //   const newAmount = parseInt(particularItem[0]?.price) * parseInt(quantity);
-  //   const calculatedAmount = parseInt(particularItem[0]?.amount) - newAmount;
-  //   particularItem[0].quantity = updatedQuantity.toString();
-  //   particularItem[0].amount = calculatedAmount.toString();
-  //   try {
-  //     const response = await this.prisma.products.update({
-  //       where: {
-  //         id: itemId,
-  //       },
-  //       data: {
-  //         quantity: particularItem[0].quantity,
-  //       },
-  //     });
-  //     return {
-  //       response: response,
-  //       status: "Success",
-  //     };
-  //   } catch (err) {
-  //     console.debug("FAILED to update item in stock out", err);
-  //   }
-  // }
 
   async deleteItem(itemId: string) {
     try {

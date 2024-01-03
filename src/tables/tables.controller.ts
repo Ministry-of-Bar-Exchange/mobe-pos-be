@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { TablesService } from "./tables.service";
 import { Tables } from "@prisma/client";
+import { CreateMultipleTableDto } from "./dto/create-table.dto";
 
 @Controller("tables")
 export class TablesController {
@@ -17,6 +18,11 @@ export class TablesController {
   @Post()
   create(@Body() createTableDto: Tables) {
     return this.tablesService.create(createTableDto);
+  }
+
+  @Post('multi')
+  createMultipleTables(@Body() createMultipleTableDto: CreateMultipleTableDto) {
+    return this.tablesService.createMultipleTables(createMultipleTableDto);
   }
 
   @Get()
