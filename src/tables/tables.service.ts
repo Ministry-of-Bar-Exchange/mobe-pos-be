@@ -103,6 +103,7 @@ export class TablesService {
         isDeleted: true,
         updatedAt: true,
         createdAt: true,
+        status:true,
         billing: {
           select: {
             isBillPrinted: true
@@ -126,6 +127,7 @@ export class TablesService {
         updatedAt: item.updatedAt,
         createdAt: item.createdAt,
         isBillPrinted: value,
+        status:item.status,
       };
     });
   
