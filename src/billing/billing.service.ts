@@ -89,11 +89,22 @@ export class BillingService {
 
   async update(id: string, updateBillingDto: Partial<Billing>) {
     const updatedBilling = await this.prisma.billing.update({
+      include:{
+        table:true
+      },
       where: {
         id,
       },
+      
       data: { ...updateBillingDto, isBillPrinted: false },
     });
+    if (updatedBilling.table) {
+      const tableId = updatedBilling.table.id;
+      await this.prisma.tables.update({
+        where: { id: tableId },
+        data: { status:"AVAILABLE" },
+      });
+  }
     return updatedBilling;
   }
 

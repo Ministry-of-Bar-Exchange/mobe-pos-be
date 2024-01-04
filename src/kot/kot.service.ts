@@ -13,10 +13,10 @@ export class KotService {
     private prisma: PrismaService,
     private productService: ProductsService
   ) {}
-
   async createKot(itemData: Kot) {
     try {
       const steward = await this.findOneByStewardNo(itemData.stewardNo);
+      let billingProcessed = false;
 
       if (steward) {
         itemData.kotNo = generateRandomNumber(8);
@@ -36,6 +36,16 @@ export class KotService {
             data: { lastVoidBillAt: new Date() },
           });
         }
+
+        if (response.billing && !billingProcessed) {
+          const tableId = response.table.id;
+          await this.prisma.tables.update({
+            where: { id: tableId },
+            data: { status: "OCCUPIED" },
+          });
+          billingProcessed = true;
+        }
+
         // if (response.billing) {
         //   const billingId = response.billing.id;
         //   await this.prisma.billing.update({
@@ -420,8 +430,8 @@ export class KotService {
           },
           billing: {
             status: "UNSETTLED",
-            isBillPrinted:false
-          }
+            isBillPrinted: false,
+          },
         },
       });
 
