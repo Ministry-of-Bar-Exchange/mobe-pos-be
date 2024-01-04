@@ -159,6 +159,17 @@ model Kot {
   updatedAt DateTime  @updatedAt
 }
 
+model Host {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  phone     String   @unique
+  name      String
+  status    String?
+  amount    String
+  tableCode String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 type KotItem {
   productId      String  @db.ObjectId
   quantity       Int
