@@ -127,7 +127,7 @@ model Billing {
   billClosedBy   String?    @default("")
   payment        Payment?
   stewardNo      String?
-  isBillPrinted  Boolean?  @default(false)
+  isBillPrinted  Boolean?   @default(false)
   lastPrinted    DateTime?  @default(now())
   lastVoidBillAt DateTime?  @default(now())
 }
@@ -156,6 +156,17 @@ model Kot {
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Host {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  phone     String   @unique
+  name      String
+  status    String?
+  amount    String
+  tableCode String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 type KotItem {

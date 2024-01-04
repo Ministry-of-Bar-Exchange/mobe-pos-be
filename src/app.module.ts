@@ -16,11 +16,13 @@ import { TablesModule } from './tables/tables.module';
 import { KotModule } from "kot/kot.module";
 import { RestaurantModule } from "resturant/restaurant.module";
 import { ReportsModule } from "reports/reports.module";
+import { HostModule } from "host/host.module";
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
+    HostModule,
     PrismaModule,
     RestaurantModule,
     MailerModule.forRootAsync({
