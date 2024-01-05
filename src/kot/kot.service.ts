@@ -26,7 +26,6 @@ export class KotService {
           include: {
             table: true,
             billing: true,
-            // billing:true
           },
         });
         if (response.billing) {
@@ -36,7 +35,6 @@ export class KotService {
             data: { lastVoidBillAt: new Date() },
           });
         }
-
         if (response.billing && !billingProcessed) {
           const tableId = response.table.id;
           await this.prisma.tables.update({
@@ -45,15 +43,6 @@ export class KotService {
           });
           billingProcessed = true;
         }
-
-        // if (response.billing) {
-        //   const billingId = response.billing.id;
-        //   await this.prisma.billing.update({
-        //     where: { id: billingId },
-        //     data: { lastVoidBillAt: new Date() },
-        //   });
-        // }
-
         const list = await this.addProductsDataInKotInfo([response]);
         response.kotData = list;
 
