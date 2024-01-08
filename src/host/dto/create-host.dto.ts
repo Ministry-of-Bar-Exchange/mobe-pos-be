@@ -3,5 +3,6 @@ export class CreateHostDto {
   phone: string;
   tableCode: string;
   amount: string;
+  tableId: string; 
   status ?: string
 }
