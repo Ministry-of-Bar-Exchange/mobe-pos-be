@@ -13,6 +13,17 @@ export class HostService {
       const createdHost = await this.prisma.host.create({
         data: createHostDto,
       });
+      const tableId = createHostDto.tableId;
+      if (tableId) {
+        const updatedTable = await this.prisma.tables.update({
+          where: {
+            id: tableId,
+          },
+          data: {
+            status: "OCCUPIED",
+          },
+        });
+      }
 
       return createdHost;
     } catch (error) {
@@ -47,6 +58,19 @@ export class HostService {
       },
       data: updateHostDto,
     });
+
+    const tableId = updateHostDto.tableId;
+    if (tableId) {
+      const updatedTable = await this.prisma.tables.update({
+        where: {
+          id: tableId,
+        },
+        data: {
+          status: "OCCUPIED",
+        },
+      });
+    }
+
     return updatedHost;
   }
 }
