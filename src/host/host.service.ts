@@ -10,22 +10,29 @@ export class HostService {
 
   async create(createHostDto: CreateHostDto) {
     try {
-      const createdHost = await this.prisma.host.create({
-        data: createHostDto,
+      const hosts = await this.prisma.host.findUnique({
+        where: { phone: createHostDto?.phone },
       });
-      const tableId = createHostDto.tableId;
-      if (tableId) {
-        const updatedTable = await this.prisma.tables.update({
-          where: {
-            id: tableId,
-          },
-          data: {
-            status: "OCCUPIED",
-          },
-        });
-      }
 
-      return createdHost;
+      if (!hosts) {
+        const createdHost = await this.prisma.host.create({
+          data: createHostDto,
+        });
+        const tableId = createHostDto.tableId;
+        if (tableId) {
+          const updatedTable = await this.prisma.tables.update({
+            where: {
+              id: tableId,
+            },
+            data: {
+              status: "OCCUPIED",
+            },
+          });
+        }
+        return createdHost;
+      } else {
+        return hosts;
+      }
     } catch (error) {
       throw new Error(`Failed to create Host: ${error.message}`);
     }
@@ -72,5 +79,14 @@ export class HostService {
     }
 
     return updatedHost;
+  }
+
+  findTable(table: string) {
+    return this.prisma.host.findFirst({
+      where: {
+        tableCode: table,
+        status: false,
+      },
+    });
   }
 }
