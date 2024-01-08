@@ -29,6 +29,10 @@ export class HostController {
   findOne(@Param("phone") phone: string) {
     return this.hostService.findOne(phone);
   }
+  @Get("/table/:table")
+  findTable(@Param("table") table: string) {
+    return this.hostService.findTable(table);
+  }
 
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateHostDto: UpdateHostDto) {

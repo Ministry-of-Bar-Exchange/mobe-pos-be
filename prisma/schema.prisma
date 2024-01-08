@@ -105,6 +105,7 @@ type Payment {
 
 model Billing {
   id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  customerId     String?
   name           String
   phone          String
   billNo         String
@@ -163,10 +164,10 @@ model Host {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   phone     String   @unique
   name      String
-  status    String?
-  amount    String
+  status    Boolean?
+  amount    String?
   tableCode String
-  tableId  String
+  tableId   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -127,6 +127,15 @@ export class BillingService {
         },
         data: { ...updateBillingDto, products: list, isBillPrinted: true },
       });
+
+      const updateHost = await this.prisma.host.update({
+        where: {
+          id: updateBillingDto?.customerId,
+        },
+        data: {
+          status: true,
+        },
+      });
       const { isBillPrinterSuccess: isPrinted } = await printBilReceipt(
         updatedKot,
         null,
