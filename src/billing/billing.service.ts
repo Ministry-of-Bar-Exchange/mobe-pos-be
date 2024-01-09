@@ -10,8 +10,19 @@ import { CommonObjectType, UpdateKotItemListType } from "types";
 export class BillingService {
   constructor(private prisma: PrismaService, private kotService: KotService) {}
 
-  create(createBillingDto: Billing) {
-    createBillingDto.billNo = generateRandomNumber(8);
+  async create(createBillingDto: Billing) {
+    const LastBillingData = await this.prisma.billing.findFirst({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (!LastBillingData?.billNo) {
+      createBillingDto.billNo = "1";
+    } else {
+      createBillingDto.billNo = `${Number(LastBillingData.billNo) + 1}`;
+    }
+
     return this.prisma.billing.create({ data: createBillingDto });
   }
 
