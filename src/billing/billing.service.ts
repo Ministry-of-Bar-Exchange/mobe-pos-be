@@ -11,21 +11,69 @@ export class BillingService {
   constructor(private prisma: PrismaService, private kotService: KotService) {}
 
   async create(createBillingDto: Billing) {
-    const LastBillingData = await this.prisma.billing.findFirst({
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    try {
+      const steward = await this.findOneByStewardNo(
+        createBillingDto?.stewardNo
+      );
 
-    if (!LastBillingData?.billNo) {
-      createBillingDto.billNo = "1";
-    } else {
-      createBillingDto.billNo = `${Number(LastBillingData.billNo) + 1}`;
+      if (!steward) {
+        throw new Error("Please enter correct steward no");
+      }
+
+      const LastBillingData = await this.prisma.billing.findFirst({
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (!LastBillingData?.billNo) {
+        createBillingDto.billNo = "1";
+      } else {
+        createBillingDto.billNo = `${Number(LastBillingData.billNo) + 1}`;
+      }
+
+      return this.prisma.billing.create({ data: createBillingDto });
+    } catch (e) {
+      console.error(e);
+      if (e.message === "Please enter correct steward no") {
+        throw new Error("Please enter correct steward no");
+      }
     }
-
-    return this.prisma.billing.create({ data: createBillingDto });
   }
 
+  async findOneByStewardNo(stewardNo: string) {
+    const foundUser = await this.prisma.user.findFirst({
+      where: {
+        stewardNo,
+      },
+    });
+    
+
+    return foundUser;
+  }
+
+  async getKotForBillingId(billingId: string) {
+    try {
+      const kot = await this.prisma.kot.findMany({
+        where: {
+          isDeleted: {
+            equals: false,
+          },
+          billingId,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+        include: {
+          billing: true,
+        },
+      });
+
+      return kot;
+    } catch (err) {
+      console.debug(err, "Cannot get all kot");
+    }
+  }
   async findAll(filters: CommonObjectType) {
     try {
       const billingList = await this.prisma.billing.findMany({
@@ -100,22 +148,22 @@ export class BillingService {
 
   async update(id: string, updateBillingDto: Partial<Billing>) {
     const updatedBilling = await this.prisma.billing.update({
-      include:{
-        table:true
+      include: {
+        table: true,
       },
       where: {
         id,
       },
-      
+
       data: { ...updateBillingDto, isBillPrinted: false },
     });
     if (updatedBilling.table) {
       const tableId = updatedBilling.table.id;
       await this.prisma.tables.update({
         where: { id: tableId },
-        data: { status:"AVAILABLE" },
+        data: { status: "AVAILABLE" },
       });
-  }
+    }
     return updatedBilling;
   }
 
@@ -141,12 +189,13 @@ export class BillingService {
 
       const updateHost = await this.prisma.host.update({
         where: {
-          id: updateBillingDto?.customerId,
+          id: updatedKot?.customerId,
         },
         data: {
           status: true,
         },
       });
+      console.log(updateHost,"host")
       const { isBillPrinterSuccess: isPrinted } = await printBilReceipt(
         updatedKot,
         null,
