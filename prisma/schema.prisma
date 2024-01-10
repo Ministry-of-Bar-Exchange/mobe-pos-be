@@ -101,6 +101,7 @@ type Payment {
   chequeAmount     Float?
   cards            CardInfo[]
   balance          Float?
+  pendingAmount    Float?
 }
 
 model Billing {
