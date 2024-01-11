@@ -17,7 +17,11 @@ export class BillingService {
       );
 
       if (!steward) {
-        throw new Error("Please enter correct steward no");
+        return {
+          message: "Please enter correct steward no",
+          code: 200,
+          success: false
+        };
       }
 
       const LastBillingData = await this.prisma.billing.findFirst({
@@ -34,7 +38,6 @@ export class BillingService {
 
       return this.prisma.billing.create({ data: createBillingDto });
     } catch (e) {
-      console.error(e);
       if (e.message === "Please enter correct steward no") {
         throw new Error("Please enter correct steward no");
       }
@@ -47,7 +50,6 @@ export class BillingService {
         stewardNo,
       },
     });
-    
 
     return foundUser;
   }
@@ -71,7 +73,8 @@ export class BillingService {
 
       return kot;
     } catch (err) {
-      console.debug(err, "Cannot get all kot");
+      const { message, status } = err;
+      throw new HttpException(message, status);
     }
   }
   async findAll(filters: CommonObjectType) {
@@ -195,7 +198,7 @@ export class BillingService {
           status: true,
         },
       });
-      console.log(updateHost,"host")
+      console.log(updateHost, "host");
       const { isBillPrinterSuccess: isPrinted } = await printBilReceipt(
         updatedKot,
         null,
