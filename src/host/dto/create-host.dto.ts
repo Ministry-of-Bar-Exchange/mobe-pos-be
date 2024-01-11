@@ -1,7 +1,7 @@
 export class CreateHostDto {
   name: string;
   phone: string;
-  tableCode: string;
+  tableCode?: string;
   amount?: string;
   tableId?: string; 
   status ?: boolean
