@@ -18,7 +18,7 @@ export class BillingService {
 
       if (!steward) {
         return {
-          message: "Please enter correct steward no",
+          message: "Please enter correct steward number",
           code: 200,
           success: false
         };
