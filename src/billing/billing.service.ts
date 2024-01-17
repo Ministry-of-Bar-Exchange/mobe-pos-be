@@ -162,11 +162,24 @@ export class BillingService {
     });
     if (updatedBilling.table) {
       const tableId = updatedBilling.table.id;
-      await this.prisma.tables.update({
+      const host = await this.prisma.tables.update({
         where: { id: tableId },
         data: { status: "AVAILABLE" },
       });
     }
+    const hostData = await this.prisma.host.findFirst({
+      where: {
+        tableCode: updatedBilling?.table?.code,
+        status: false,
+      },
+    });
+    if (hostData) {
+      await this.prisma.host.update({
+        where: { id: hostData?.id },
+        data: { status: true },
+      });
+    }
+
     return updatedBilling;
   }
 
@@ -366,6 +379,30 @@ export class BillingService {
           tableId: toTable?.id,
         },
       });
+      const hostToUpdate = await this.prisma.host.findFirst({
+        where: {
+          tableCode: updateBillingDto?.from,
+          status: false,
+        },
+      });
+      if (hostToUpdate) {
+        await this.prisma.host.update({
+          where: { id: hostToUpdate?.id },
+          data: { tableCode: updateBillingDto?.to },
+        });
+      }
+      if (fromTable) {
+        await this.prisma.tables.update({
+          where: { id: fromTable?.id },
+          data: { status: "AVAILABLE" },
+        });
+      }
+      if (toTable) {
+        await this.prisma.tables.update({
+          where: { id: toTable?.id },
+          data: { status: "OCCUPIED" },
+        });
+      }
 
       const kotInfo = await this.prisma.kot.findFirst({
         where: {

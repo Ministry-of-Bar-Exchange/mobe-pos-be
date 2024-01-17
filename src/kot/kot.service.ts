@@ -94,7 +94,7 @@ export class KotService {
       });
 
       const unsettledKots = kotsWithTables.filter((kot) => {
-        return kot.billing?.status !== "SETTLED";
+        return (kot.billing?.status === "UNSETTLED" && kot.billing?.isBillPrinted===false);
       });
 
       for (const kot of unsettledKots) {
@@ -344,35 +344,33 @@ export class KotService {
     try {
       const hasPayloadToUpdate = !updateKotItemPayload?.kotData?.length;
       if (hasPayloadToUpdate) return;
-
+  
       const commonId = updateKotItemPayload.kotData[0]?.id;
-
+  
       if (!commonId) {
         console.error("Common id not found in the payload.");
         return;
       }
-
+  
       const foundKot = await this.prisma.kot.findFirst({
         where: {
           id: commonId,
         },
       });
-
+  
       const kotData = foundKot?.kotData;
-
+  
       updateKotItemPayload.kotData.forEach((item) => {
         const kotDataIndex = kotData.findIndex(
           (kotInfo) => kotInfo.productId === item.productId
         );
-
+  
         if (kotDataIndex !== -1) {
-          kotData[kotDataIndex].isCanceled = true;
-          kotData[kotDataIndex].canceledBy = updateKotItemPayload?.canceledBy;
-          kotData[kotDataIndex].canceledReason =
-            updateKotItemPayload?.canceledReason;
+          // Remove the item from the kotData array
+          kotData.splice(kotDataIndex, 1);
         }
       });
-
+  
       return this.prisma.kot.update({
         where: {
           id: foundKot.id,
@@ -385,6 +383,7 @@ export class KotService {
       console.error("Failed to update item", err);
     }
   }
+  
 
   async deleteItem(itemId: string) {
     try {
