@@ -219,7 +219,7 @@ export class UsersService {
         });
         const matchPassword = await bcrypt.compare(
           restaurantAuthenticateDto?.discountPassword,
-          particularUser?.restaurant.discountPassword
+          particularUser?.password
         );
         const response = {
           isAuthenticate: matchPassword,
