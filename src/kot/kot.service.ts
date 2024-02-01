@@ -94,7 +94,10 @@ export class KotService {
       });
 
       const unsettledKots = kotsWithTables.filter((kot) => {
-        return (kot.billing?.status === "UNSETTLED" && kot.billing?.isBillPrinted===false);
+        return (
+          kot.billing?.status === "UNSETTLED" &&
+          kot.billing?.isBillPrinted === false
+        );
       });
 
       for (const kot of unsettledKots) {
@@ -344,34 +347,33 @@ export class KotService {
     try {
       const hasPayloadToUpdate = !updateKotItemPayload?.kotData?.length;
       if (hasPayloadToUpdate) return;
-  
+
       const commonId = updateKotItemPayload.kotData[0]?.id;
-  
+
       if (!commonId) {
         console.error("Common id not found in the payload.");
         return;
       }
-  
+
       const foundKot = await this.prisma.kot.findFirst({
         where: {
           id: commonId,
         },
       });
-  
+
       const kotData = foundKot?.kotData;
-  
+
       updateKotItemPayload.kotData.forEach((item) => {
         const kotDataIndex = kotData.findIndex(
           (kotInfo) => kotInfo.productId === item.productId
         );
-  
+
         if (kotDataIndex !== -1) {
-          // Remove the item from the kotData array
           kotData.splice(kotDataIndex, 1);
         }
       });
-  
-      return this.prisma.kot.update({
+
+      const updatedKot = await this.prisma.kot.update({
         where: {
           id: foundKot.id,
         },
@@ -379,11 +381,42 @@ export class KotService {
           kotData,
         },
       });
+      if (!foundKot?.kotData?.length) {
+        const updateTable = await this.prisma.tables.update({
+          where: {
+            id: foundKot?.tableId,
+          },
+          data: {
+            status: "AVAILABLE",
+          },
+        });
+        const findBill = await this.prisma.billing.findFirst({
+          where: {
+            id: foundKot?.billingId,
+          },
+        });
+
+        const updateHost = await this.prisma.host.update({
+          where: {
+            id: findBill?.customerId,
+          },
+          data: {
+            status: false,
+          },
+        });
+
+        const deleteBill = await this.prisma.billing.delete({
+          where: {
+            id: findBill?.id,
+          },
+        });
+      }
+
+      return updatedKot;
     } catch (err) {
       console.error("Failed to update item", err);
     }
   }
-  
 
   async deleteItem(itemId: string) {
     try {

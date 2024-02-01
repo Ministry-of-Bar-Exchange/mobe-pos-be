@@ -48,7 +48,7 @@ export class KotController {
   cancelKotItem(
     @Body() updateKotItemPayload: Partial<CancelKotItemPayloadType>
   ) {
-    console.debug("payload", updateKotItemPayload);
+   
     return this.kotService.updateKotItem(updateKotItemPayload);
   }
 
