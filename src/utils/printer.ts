@@ -147,7 +147,7 @@ const printBilReceipt = async (data = null, steward = null, type) => {
     ]);
     billPrinter.bold(false);
     billPrinter.println("----------------------------------------");
-    console.log("Bill Print products", data.products);
+    // console.log("Bill Print products", data.products);
     for (const item of data.products) {
       if (typeof item === "object" && item.product) {
         const productName = item.product.name;
@@ -222,27 +222,26 @@ const printBilReceipt = async (data = null, steward = null, type) => {
 
     kotHeader(barPrinter, kotNo, steward?.name, table?.code);
     kotHeader(kitchenPrinter, kotNo, steward?.name, table?.code);
-
-    console.log("KOT Print products", kotData);
+  
 
     for (const item of kotData) {
       if (typeof item === "object" && item.product) {
         const productName = item.product.name;
         const productQuantity = item.quantity;
         if (item.product.category.name === "food") {
-          console.log("Food Item: ", item);
           kitchenPrinter.setTypeFontA();
           kitchenPrinter.tableCustom([
             { text: productName, align: "LEFT", width: 0.4 },
             { text: productQuantity, align: "RIGHT", width: 0.2 },
           ]);
           if (item.modifier) {
-            barPrinter.tableCustom([
+            
+            kitchenPrinter.tableCustom([
               { text: " (" + item.modifier + ")", align: "LEFT", width: 0.4 },
             ]);
           }
           isFoodAvailable = true;
-        } else {
+        } else {                                                                                                                                                                                                  
           barPrinter.setTypeFontA();
           barPrinter.tableCustom([
             { text: productName, align: "LEFT", width: 0.4 },
