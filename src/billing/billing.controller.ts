@@ -26,6 +26,12 @@ export class BillingController {
     return this.billingService.findAll(filters);
   }
 
+  @Get('/sale')
+  findSale(@Query() filters: CommonObjectType) {
+    return this.billingService.findSale(filters);
+  }
+
+
   @Get("table-code/:code")
   findBillFromTableCode(
     @Param("code") code: string,
