@@ -20,7 +20,7 @@ export class BillingService {
         return {
           message: "Please enter correct steward number",
           code: 200,
-          success: false
+          success: false,
         };
       }
 
@@ -107,6 +107,107 @@ export class BillingService {
       const { message, status } = error;
       throw new HttpException(message, status);
     }
+  }
+  async findSale(filters: CommonObjectType) {
+    const currentDate = new Date();
+
+    const currentDateString = currentDate.toISOString().split("T")[0];
+
+    const billingData = await this.prisma.billing.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(`${currentDateString}T00:00:00.000Z`),
+          lte: new Date(`${currentDateString}T23:59:59.999Z`),
+        },
+        status: "SETTLED",
+      },
+    });
+
+    let cashSale = 0;
+    let cardSale = 0;
+
+    billingData?.forEach((item: any) => {
+      cashSale += item?.payment?.cashAmount || 0;
+      cardSale += item?.payment?.cards[0]?.amount || 0;
+    });
+
+    const unsettledPrintedData = await this.prisma.billing.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(`${currentDateString}T00:00:00.000Z`),
+          lte: new Date(`${currentDateString}T23:59:59.999Z`),
+        },
+
+        isBillPrinted: true,
+      },
+    });
+    let todaySale = 0;
+    unsettledPrintedData?.forEach((item: any) => {
+      todaySale += Number(item?.netAmount) || 0;
+    });
+
+    const kotBillData = await this.prisma.billing.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(`${currentDateString}T00:00:00.000Z`),
+          lte: new Date(`${currentDateString}T23:59:59.999Z`),
+        },
+        status: "UNSETTLED",
+        isBillPrinted: false,
+      },
+      include: {
+        kotList: {
+          where: {
+            isDeleted: false,
+          },
+        },
+      },
+    });
+
+    const kotDetails = [];
+    kotBillData?.forEach((billingItem: any) => {
+      const billingId = billingItem.id;
+      const kotList = billingItem.kotList;
+
+      kotList?.forEach((kotItem: any) => {
+        kotDetails.push({
+          kotData: kotItem?.kotData,
+        });
+      });
+    });
+    const flattenedKotDetails = kotDetails.flatMap((kot) =>
+      kot.kotData.flatMap((item) => Array(item.quantity).fill(item.productId))
+    );
+
+    const uniqueProductIds = Array.from(new Set(flattenedKotDetails));
+
+    const products = await this.prisma.products.findMany({
+      where: {
+        id: {
+          in: uniqueProductIds,
+        },
+      },
+    });
+
+    const duplicatedProducts = kotDetails.flatMap((kot) =>
+      kot.kotData.flatMap((item) => {
+        const product = products.find((p) => p.id === item.productId);
+        if (!product) {
+          return [];
+        }
+        return Array(item.quantity).fill(product);
+      })
+    );
+    let unbilled = 0;
+    duplicatedProducts?.map((item: any) => {
+      unbilled += Number(item?.price);
+    });
+    return {
+      cashSale: cashSale + unbilled,
+      cardSale,
+      todaySale,
+      unbilled,
+    };
   }
 
   findOne(id: string) {
@@ -211,7 +312,7 @@ export class BillingService {
           status: true,
         },
       });
-      console.log(updateHost, "host");
+
       const { isBillPrinterSuccess: isPrinted } = await printBilReceipt(
         updatedKot,
         null,
