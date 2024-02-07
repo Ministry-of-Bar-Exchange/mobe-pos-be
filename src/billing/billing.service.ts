@@ -137,7 +137,6 @@ export class BillingService {
           gte: new Date(`${currentDateString}T00:00:00.000Z`),
           lte: new Date(`${currentDateString}T23:59:59.999Z`),
         },
-
         isBillPrinted: true,
       },
     });
@@ -202,10 +201,11 @@ export class BillingService {
     duplicatedProducts?.map((item: any) => {
       unbilled += Number(item?.price);
     });
+    const saleData=todaySale + unbilled
     return {
-      cashSale: cashSale + unbilled,
+      cashSale,
       cardSale,
-      todaySale,
+      todaySale:saleData,
       unbilled,
     };
   }
@@ -372,35 +372,38 @@ export class BillingService {
         );
       }
 
-      const kotInfo = await this.prisma.kot.findFirst({
+      const kotInfo = await this.prisma.kot.findMany({
         where: {
           billingId: billingFromShift?.id,
         },
       });
+         
       const deletedData = [];
-      if (kotInfo) {
-        kotInfo.kotData = kotInfo.kotData.filter((kotItem) => {
-          const isDeleted = updateBillingDto.kotData.some((updateItem) => {
-            if (updateItem.productId === kotItem.productId) {
-              deletedData.push(kotItem);
-              return true;
-            }
-            return false;
+      
+      if (kotInfo.length > 0) {
+        for (const kot of kotInfo) {
+          kot.kotData = kot.kotData.filter((kotItem) => {
+            const isDeleted = updateBillingDto.kotData.some((updateItem) => {
+              if (updateItem.productId === kotItem.productId) {
+                deletedData.push(kotItem);
+                return true;
+              }
+              return false;
+            });
+      
+            return !isDeleted;
           });
-
-          return !isDeleted;
-        });
-
-        await this.prisma.kot.update({
-          where: {
-            id: kotInfo.id,
-          },
-          data: {
-            kotData: kotInfo.kotData,
-          },
-        });
+      
+          await this.prisma.kot.update({
+            where: {
+              id: kot.id,
+            },
+            data: {
+              kotData: kot.kotData,
+            },
+          });
+        }
       }
-
       const kotToData = await this.prisma.kot.findFirst({
         where: {
           billingId: tableAlreadyOccupied?.id,
