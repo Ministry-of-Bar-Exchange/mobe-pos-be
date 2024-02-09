@@ -62,6 +62,28 @@ export class KotService {
     }
   }
 
+  async rePrintKot(reprintKot) {
+    let kotData = [];
+    for (let i = 0; i < reprintKot.length; i++) {
+      const kots = await this.prisma.kot.findFirst({
+        where: {
+          id: reprintKot[i],
+        },
+        include: {
+          table: true,
+          billing: true,
+        },
+      });
+      kotData?.push(kots);
+    }
+
+    for (let j = 0; j < kotData?.length; j++) {
+      const { isKitchenPrinterSuccess, isBarPrinterSuccess } =
+        await printBilReceipt(kotData[j], null, "kot");
+    }
+    return kotData;
+  }
+
   async getAllItems() {
     try {
       const kot = await this.prisma.kot.findMany({

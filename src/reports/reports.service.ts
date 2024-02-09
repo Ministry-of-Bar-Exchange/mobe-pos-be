@@ -282,6 +282,9 @@ export class ReportsService {
 
       const billingData = await this.prisma.billing.findMany({
         where: whereClause,
+        include:{
+          table:true
+        }
       });
 
       return billingData;

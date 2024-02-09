@@ -108,6 +108,28 @@ export class BillingService {
       throw new HttpException(message, status);
     }
   }
+
+  async rePrintBilling(rePrintBilling) {
+    let billData = [];
+    for (let i = 0; i < rePrintBilling.length; i++) {
+      const billingData = await this.prisma.billing.findFirst({
+        where: {
+          id: rePrintBilling[i],
+        },
+      });
+      billData?.push(billingData);
+    }
+
+    for (let j = 0; j < billData?.length; j++) {
+      const { isBillPrinterSuccess: isPrinted } = await printBilReceipt(
+        billData[j],
+        null,
+        "bill"
+      );
+    }
+    return billData;
+  }
+
   async findSale(filters: CommonObjectType) {
     const currentDate = new Date();
 
@@ -201,11 +223,11 @@ export class BillingService {
     duplicatedProducts?.map((item: any) => {
       unbilled += Number(item?.price);
     });
-    const saleData=todaySale + unbilled
+    const saleData = todaySale + unbilled;
     return {
       cashSale,
       cardSale,
-      todaySale:saleData,
+      todaySale: saleData,
       unbilled,
     };
   }
@@ -377,9 +399,9 @@ export class BillingService {
           billingId: billingFromShift?.id,
         },
       });
-         
+
       const deletedData = [];
-      
+
       if (kotInfo.length > 0) {
         for (const kot of kotInfo) {
           kot.kotData = kot.kotData.filter((kotItem) => {
@@ -390,10 +412,10 @@ export class BillingService {
               }
               return false;
             });
-      
+
             return !isDeleted;
           });
-      
+
           await this.prisma.kot.update({
             where: {
               id: kot.id,
