@@ -79,7 +79,7 @@ export class KotService {
 
     for (let j = 0; j < kotData?.length; j++) {
       const { isKitchenPrinterSuccess, isBarPrinterSuccess } =
-        await printBilReceipt(kotData[j], null, "kot");
+        await printBilReceipt(kotData[j], 5250, "kot");
     }
     return kotData;
   }
