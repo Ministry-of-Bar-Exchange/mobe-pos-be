@@ -162,8 +162,20 @@ export class BillingService {
         isBillPrinted: true,
       },
     });
+    const settledData = await this.prisma.billing.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(`${currentDateString}T00:00:00.000Z`),
+          lte: new Date(`${currentDateString}T23:59:59.999Z`),
+        },
+        status: "SETTLED",
+      },
+    });
     let todaySale = 0;
     unsettledPrintedData?.forEach((item: any) => {
+      todaySale += Number(item?.netAmount) || 0;
+    });
+    settledData?.forEach((item: any) => {
       todaySale += Number(item?.netAmount) || 0;
     });
 

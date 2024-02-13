@@ -266,33 +266,53 @@ export class ReportsService {
       const whereClause: any = {
         isBillPrinted: true,
       };
-
-      if (filters?.fromDate !== "") {
+      const findClause: any = {
+        isBillPrinted: false,
+        status: "SETTLED"
+      };
+  
+      if (filters && filters.fromDate !== "") {
         whereClause.lastPrinted = {
           gte: filters.fromDate,
         };
-      }
+        findClause.lastPrinted = {
+          gte: filters.fromDate,
+        };
 
-      if (filters?.toDate !== "") {
+      }
+  
+      if (filters && filters.toDate !== "") {
         if (!whereClause.lastPrinted) {
           whereClause.lastPrinted = {};
+          findClause.lastPrinted = {};
         }
-        whereClause.lastPrinted.lte = filters?.toDate;
+        whereClause.lastPrinted.lte = filters.toDate;
+        findClause.lastPrinted.lte = filters.toDate;
       }
-
+  
       const billingData = await this.prisma.billing.findMany({
         where: whereClause,
-        include:{
-          table:true
+        include: {
+          table: true
         }
       });
-
-      return billingData;
+  
+      const settledBillingData = await this.prisma.billing.findMany({
+        where: findClause,
+        include: {
+          table: true
+        }
+      });
+  
+      const mergedData = billingData.concat(settledBillingData);
+  
+      return mergedData;
     } catch (error) {
       const { message, status } = error;
       throw new HttpException(message, status);
     }
   }
+  
 
   async getComplimentaryDataByDate(filters: CommonObjectType) {
     try {

@@ -127,6 +127,8 @@ model Billing {
   discountReason String?    @default("")
   billReason     String?    @default("")
   billClosedBy   String?    @default("")
+  gst            String?    @default("")
+  vat            String?    @default("")
   payment        Payment?
   stewardNo      String?
   isBillPrinted  Boolean?   @default(false)

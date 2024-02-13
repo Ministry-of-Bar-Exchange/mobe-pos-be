@@ -3,5 +3,7 @@ export class CreateBillingDto {
   customerId ?: string
   phone: string;
   itemList: String[];
+  gst?:string
+  vat?: string
   status: "void" | "complementary" | "checkout";
 }
