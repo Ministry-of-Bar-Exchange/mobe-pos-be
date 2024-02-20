@@ -30,19 +30,19 @@ model User {
   id         String      @id @default(auto()) @map("_id") @db.ObjectId
   restaurant Restaurant?
   name       String
-  email      String
+  email      String?
   phone      String?
   gender     String?
   stewardNo  String?
-  password   String
+  password   String?
   department String?
   profile    String?
-  role       String      @default("staff")
+  role       String?      @default("staff")
   createdAt  DateTime?   @default(now())
   updatedAt  DateTime?   @updatedAt
   isDeleted  Boolean?    @default(false)
 
-  @@unique([email])
+  // @@unique([email])
 }
 
 model Category {
@@ -54,7 +54,6 @@ model Category {
   isDeleted   Boolean       @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-
   @@unique([name])
 }
 
