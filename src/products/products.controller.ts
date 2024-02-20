@@ -11,7 +11,7 @@ import {
 } from "@nestjs/common";
 import { ProductsService } from "./products.service";
 import { CreateItemDto } from "./dto/create-item.dto";
-import { UpdateItemDto, UpdateItemQuantity } from "./dto/update-item.dto";
+import { UpdateItemDto } from "./dto/update-item.dto";
 import { toJSON } from "utils/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "Auth/auth.public";
@@ -26,8 +26,8 @@ export class ProductsController {
     const stringifyData = file?.buffer?.toString();
     const itemsListToCreate = toJSON(stringifyData);
 
-    this.productsService.handleItemsUpload(itemsListToCreate);
-    return itemsListToCreate;
+    return this.productsService.handleItemsUpload(itemsListToCreate);
+    
   }
 
   @Get()

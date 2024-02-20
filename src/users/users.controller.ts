@@ -49,6 +49,10 @@ export class UsersController {
   findAllRestaurant() {
     return this.teamMemberService.findAllRestaurant();
   }
+  @Get("/steward")
+  getSteward() {
+    return this.teamMemberService.getSteward();
+  }
 
   @Get(":id")
   findOne(@Param("id") id: string) {
@@ -119,5 +123,9 @@ export class UsersController {
   @Delete("restaurant/delete/:id")
   removeRestaurant(@Param("id") id: string) {
     return this.teamMemberService.removeRestaurant(id);
+  }
+  @Delete("remove/:id")
+  removeSteward(@Param("id") id: string) {
+    return this.teamMemberService.removeSteward(id);
   }
 }

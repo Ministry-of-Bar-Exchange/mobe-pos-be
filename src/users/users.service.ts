@@ -43,7 +43,6 @@ export class UsersService {
           return res;
         })
         .catch((error) => {
-          console.error("\n error \n", error);
           return error;
         });
 
@@ -133,8 +132,8 @@ export class UsersService {
   async findAll() {
     const allUsers = await this.prisma.user.findMany({
       where: {
-        isDeleted : false
-      }
+        isDeleted: false,
+      },
     });
     return allUsers;
   }
@@ -158,11 +157,10 @@ export class UsersService {
         data: { ...updateUserDto, password: hash },
       });
       return updatedUser;
-    } catch(error) {
+    } catch (error) {
       console.debug(error, "\n cannot update user \n");
       return error;
     }
-    
   }
 
   async remove(userId: string) {
@@ -177,14 +175,27 @@ export class UsersService {
     try {
       const hash = await bcrypt.hash(itemData?.password || "", 10);
       itemData.password = hash;
-      itemData.stewardNo = generateRandomNumber(4);
+
+      // itemData.stewardNo = generateRandomNumber(4);
       const createdUser = await this.prisma.user.create({
         data: itemData,
       });
-
       return createdUser;
     } catch (error) {
       console.debug(error, "\n cannot create user \n");
+      return error;
+    }
+  }
+
+  async getSteward() {
+    try {
+      const getStewardData = this.prisma.user.findMany({
+        where: {
+          role: "steward",
+        },
+      });
+      return getStewardData;
+    } catch (error) {
       return error;
     }
   }
@@ -195,19 +206,15 @@ export class UsersService {
         where: {
           id: userId,
         },
-        data : {
-          isDeleted : true
-        }
+        data: {
+          isDeleted: true,
+        },
       });
       return response;
     } catch (err) {
       console.debug(err, "Delete item failed");
     }
   }
-
-  /**
-   * Restaurant Services
-   */
 
   async authenticate(restaurantAuthenticateDto: restaurantAuthenticateDto) {
     try {
@@ -362,6 +369,18 @@ export class UsersService {
     }
   }
 
+  async removeSteward(id) {
+    try {
+      const removeSteward = await this.prisma.user.delete({
+        where: {
+          id,
+        },
+      });
+      return removeSteward;
+    } catch (error) {
+      return error;
+    }
+  }
   async getAllTaxList(userId) {
     try {
       const response = await this.prisma.user.findFirst({

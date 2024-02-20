@@ -31,10 +31,49 @@ export class ProductsService {
 
   async bulkCreate(itemData) {
     try {
-      const response = await this.prisma.products.createMany({
-        data: itemData,
+      
+      const productData = await this.prisma.products.findMany();
+
+      const filteredItemData = itemData.filter((item) => {
+        return !productData.some((product) => product.name === item.name);
       });
-      return response;
+
+//       const getUser = await this.prisma.user.findFirst({
+//         where: {
+//           id: "6594fb86c90cd77e87d7b832",
+//         },
+//       });
+// console.log(filteredItemData,"filteredItemData ")
+//       const filteredtax = filteredItemData.filter((item) => {
+//         return !getUser?.restaurant?.taxes.some((product) => {
+//           product.percentage === item?.tax && product?.type === item?.taxType;
+//         });
+//       });
+//       console.log(filteredtax,"filteredtax")
+//       let taxData = [];
+//       const data = filteredtax.map((item) => {
+//         taxData.push({ type: item?.taxType, percentage: item?.tax });
+//       });
+      
+
+//       const resultTax = await this.prisma.user.update({
+//         where:{
+//            id: "6594fb86c90cd77e87d7b832",
+//         },
+//         data: {
+//           restaurant:{
+//             taxes:taxData
+//           }},
+//       });
+
+      if (filteredItemData.length) {
+        const response = await this.prisma.products.createMany({
+          data: filteredItemData,
+        });
+        return response;
+      } else {
+        return "Nothing to Add";
+      }
     } catch (error) {
       console.debug(error, "\n bulk create failed \n");
       return error;
@@ -44,9 +83,6 @@ export class ProductsService {
   async handleItemsUpload(csvData: { [key: string]: string }[] = []) {
     const categoryData = csvData?.map((rowData: { [key: string]: string }) => ({
       name: rowData?.category.toLowerCase(),
-      tax:
-        replaceSpecialCharsFromTax(rowData?.["tax"]?.split(" ")?.[1]) ||
-        COMMON_TAX,
     }));
 
     const filteredCategory = categoryData.filter((category, index) => {
@@ -71,37 +107,27 @@ export class ProductsService {
       });
     });
 
-    console.debug(
-      "\n subCategoryData ",
-      subCategoryData,
-      " subCategoryData \n"
-    );
     await this.subCategoryService.bulkCreate(subCategoryData);
 
     const subCategoryResult = await this.subCategoryService.findAll();
-
-    console.debug(
-      "\n subCategoryResult",
-      subCategoryResult,
-      " subCategoryResult \n "
-    );
 
     const itemData = csvData?.map((rowData: { [key: string]: string }) => {
       const categoryDetail = subCategoryResult.find(
         (categoryInfo) =>
           categoryInfo?.name === rowData?.subcategory?.toLowerCase()
       );
+
       return {
-        name: rowData?.products,
-        price: rowData?.rate,
-        measuredIn: rowData?.unit || "",
-        code: rowData?.["item code"],
+        name: rowData?.name,
+        price: rowData?.price,
+        measuredIn: rowData?.measuredIn || "",
+        code: rowData?.code,
         categoryId: categoryDetail?.categoryId,
         subcategoryId: categoryDetail?.id,
       };
     });
-
-    console.debug("\n itemData", itemData, " itemData \n ");
+    // return itemData;
+    console.log(itemData, "itemData");
     return this.bulkCreate(itemData);
   }
 
