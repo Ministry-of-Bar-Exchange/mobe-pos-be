@@ -31,40 +31,54 @@ export class ProductsService {
 
   async bulkCreate(itemData) {
     try {
-      
       const productData = await this.prisma.products.findMany();
 
       const filteredItemData = itemData.filter((item) => {
         return !productData.some((product) => product.name === item.name);
       });
 
-//       const getUser = await this.prisma.user.findFirst({
-//         where: {
-//           id: "6594fb86c90cd77e87d7b832",
-//         },
-//       });
-// console.log(filteredItemData,"filteredItemData ")
-//       const filteredtax = filteredItemData.filter((item) => {
-//         return !getUser?.restaurant?.taxes.some((product) => {
-//           product.percentage === item?.tax && product?.type === item?.taxType;
-//         });
-//       });
-//       console.log(filteredtax,"filteredtax")
-//       let taxData = [];
-//       const data = filteredtax.map((item) => {
-//         taxData.push({ type: item?.taxType, percentage: item?.tax });
-//       });
-      
+      const getUser = await this.prisma.user.findFirst({
+        where: {
+          id: "6594fb86c90cd77e87d7b832",
+        },
+      });
 
-//       const resultTax = await this.prisma.user.update({
-//         where:{
-//            id: "6594fb86c90cd77e87d7b832",
-//         },
-//         data: {
-//           restaurant:{
-//             taxes:taxData
-//           }},
-//       });
+      const filteredtax = filteredItemData.filter((item) => {
+        return !getUser?.restaurant?.taxes.some((product) => {
+          product.percentage === item?.tax && product?.type === item?.taxType;
+        });
+      });
+
+      let taxData = [];
+      const data = filteredtax.map((item) => {
+        taxData.push({ type: item?.taxType, percentage: Number(item?.tax) });
+      });
+
+      taxData = taxData.concat(
+        getUser?.restaurant?.taxes.map((tax) => ({
+          type: tax.type,
+          percentage: tax.percentage,
+        }))
+      );
+
+      const uniqueTaxData = taxData.filter(
+        (obj, index, self) =>
+          index ===
+          self.findIndex(
+            (t) => t.type === obj.type && t.percentage === obj.percentage
+          )
+      );
+
+      await this.prisma.user.update({
+        where: {
+          id: "6594fb86c90cd77e87d7b832",
+        },
+        data: {
+          restaurant: {
+            taxes: uniqueTaxData,
+          },
+        },
+      });
 
       if (filteredItemData.length) {
         const response = await this.prisma.products.createMany({
@@ -124,10 +138,11 @@ export class ProductsService {
         code: rowData?.code,
         categoryId: categoryDetail?.categoryId,
         subcategoryId: categoryDetail?.id,
+        tax: rowData?.tax,
+        taxType: rowData?.taxtype || "",
       };
     });
-    // return itemData;
-    console.log(itemData, "itemData");
+
     return this.bulkCreate(itemData);
   }
 

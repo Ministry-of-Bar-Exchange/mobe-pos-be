@@ -9,8 +9,6 @@ export class CategoryService {
 
   async bulkCreate(categoryData) {
     try {
-      console.debug(categoryData, "\n category \n");
-
       const oldData = await this.findAll();
       const unique = categoryData.filter(
         (a, i) => categoryData.findIndex((s) => a.name === s.name) === i
@@ -19,7 +17,6 @@ export class CategoryService {
         ({ name: category }) =>
           !oldData.some(({ name: oldCategory }) => oldCategory === category)
       );
-      console.debug(filteredList, "\n filteredList \n");
 
       if (!filteredList?.length) return null;
       const response = await this.prisma.category.createMany({
