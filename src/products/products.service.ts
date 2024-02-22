@@ -41,6 +41,9 @@ export class ProductsService {
         where: {
           id: "6594fb86c90cd77e87d7b832",
         },
+        include: {
+          restaurant: true,
+        },
       });
 
       const filteredtax = filteredItemData.filter((item) => {
@@ -68,15 +71,18 @@ export class ProductsService {
             (t) => t.type === obj.type && t.percentage === obj.percentage
           )
       );
-
-      await this.prisma.user.update({
+      const findUser= await this.prisma.user.findFirst({
+        where:{
+          id:"6594fb86c90cd77e87d7b832"
+        }
+      })
+   
+      await this.prisma.restaurant.update({
         where: {
-          id: "6594fb86c90cd77e87d7b832",
+          id: findUser?.restaurantId,
         },
         data: {
-          restaurant: {
-            taxes: uniqueTaxData,
-          },
+          taxes: uniqueTaxData,
         },
       });
 

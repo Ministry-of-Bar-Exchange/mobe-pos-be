@@ -104,10 +104,10 @@ export class UsersController {
     return this.teamMemberService.authenticate(restaurantAuthenticateDto);
   }
 
-  @Post("/restaurant")
-  createRestaurant(@Body() createRestaurantDto: restaurantAuthenticateDto) {
-    return this.teamMemberService.createRestaurant(createRestaurantDto);
-  }
+  // @Post("/restaurant")
+  // createRestaurant(@Body() createRestaurantDto: restaurantAuthenticateDto) {
+  //   return this.teamMemberService.createRestaurant(createRestaurantDto);
+  // }
 
   // Tax
   @Post("restaurant/tax")

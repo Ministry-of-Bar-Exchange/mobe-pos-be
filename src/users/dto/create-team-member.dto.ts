@@ -17,4 +17,5 @@ export class CreateUserDto {
   department?: string;
   role?: string;
   id?: string;
+  restaurantId ?:string
 }

@@ -60,61 +60,7 @@ export class UsersService {
   }
 
   async handleBulkUpload(csvData: { [key: string]: string }[] = []) {
-    // const departmentData = csvData?.map(
-    //   (rowData: { [key: string]: string }) => ({
-    //     name: rowData?.department,
-    //     organizationId,
-    //   }),
-    // );
-
-    // // create departments
-    // await this.departmentService.bulkCreate(departmentData, organizationId);
-
-    // const departmentResult = await this.departmentService.findAll(
-    //   organizationId,
-    // );
-
-    // console.debug(JSON.stringify(departmentResult), '\n departmentResult \n');
-
-    // const rolesData = [];
-
-    // csvData?.forEach((rowData: { [key: string]: string }) => {
-    //   const departmentInfo = departmentResult.find(
-    //     (department) => department.name === rowData?.department,
-    //   );
-
-    //   if (!departmentInfo?.id) return;
-    //   return rolesData.push({
-    //     name: rowData?.role,
-    //     departmentId: departmentInfo?.id,
-    //     organizationId,
-    //   });
-    // });
-
-    // console.debug(JSON.stringify(rolesData), '\n rolesData \n');
-
-    // // create roles with departmentId
-    // await this.rolesService.bulkCreate(rolesData, organizationId);
-
-    // const rolesResult = await this.rolesService.findAll(organizationId);
-    // console.debug(JSON.stringify(rolesResult), '\n rolesResult \n');
-
-    // const userListToCreate = csvData.map((rowData) => {
-    //   const { role, department, ...dataToInclude } = rowData;
-    //   const roleData = rolesResult.find(
-    //     (roleInfo) => roleInfo.name === rowData?.role,
-    //   );
-    //   return {
-    //     ...dataToInclude,
-    //     roleId: roleData?.id,
-    //     departmentId: roleData?.departmentId,
-    //     organizationId,
-    //   };
-    // });
-
-    // console.debug(JSON.stringify(userListToCreate), '\n userListToCreate \n');
-
-    // create user
+  
     return this.bulkCreate(csvData);
   }
 
@@ -222,11 +168,15 @@ export class UsersService {
         const particularUser = await this.prisma.user.findFirst({
           where: {
             id: restaurantAuthenticateDto?.userId,
+            
           },
+          include:{
+            restaurant:true
+          }
         });
         const matchPassword = await bcrypt.compare(
           restaurantAuthenticateDto?.discountPassword,
-          particularUser?.password
+          particularUser?.restaurant?.discountPassword
         );
         const response = {
           isAuthenticate: matchPassword,
@@ -246,6 +196,9 @@ export class UsersService {
         where: {
           id: id,
         },
+        include: {
+          restaurant: true,
+        },
       });
       if (!user) {
         throw new NotFoundException("Could not find User");
@@ -257,30 +210,30 @@ export class UsersService {
     }
   }
 
-  async createRestaurant(createRestaurantDto: restaurantAuthenticateDto) {
-    let userId = createRestaurantDto.userId;
-    delete createRestaurantDto.userId;
+  // async createRestaurant(createRestaurantDto: restaurantAuthenticateDto) {
+  //   let userId = createRestaurantDto.userId;
+  //   delete createRestaurantDto.userId;
 
-    const hash = await bcrypt.hash(
-      createRestaurantDto?.discountPassword || "",
-      10
-    );
-    createRestaurantDto.discountPassword = hash;
-    try {
-      const response = await this.prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          restaurant: createRestaurantDto,
-        },
-      });
-      return response;
-    } catch (error) {
-      const { message, status } = error;
-      throw new HttpException(message, status);
-    }
-  }
+  //   const hash = await bcrypt.hash(
+  //     createRestaurantDto?.discountPassword || "",
+  //     10
+  //   );
+  //   createRestaurantDto.discountPassword = hash;
+  //   try {
+  //     const response = await this.prisma.user.update({
+  //       where: {
+  //         id: userId,
+  //       },
+  //       data: {
+  //         restaurant: createRestaurantDto,
+  //       },
+  //     });
+  //     return response;
+  //   } catch (error) {
+  //     const { message, status } = error;
+  //     throw new HttpException(message, status);
+  //   }
+  // }
 
   async findAllRestaurant() {
     try {
@@ -331,15 +284,12 @@ export class UsersService {
       );
 
       if (matchPassword) {
-        const updatedRestaurant = await this.prisma.user.update({
+        const updatedRestaurant = await this.prisma.restaurant.update({
           where: {
-            id: userId,
+            id: selectedUser?.id,
           },
           data: {
-            restaurant: {
-              ...selectedUser,
-              discountPassword: hash,
-            },
+            discountPassword: hash,
           },
         });
         return updatedRestaurant;
@@ -387,6 +337,9 @@ export class UsersService {
         where: {
           id: userId,
         },
+        include: {
+          restaurant: true,
+        },
       });
       return response?.restaurant.taxes;
     } catch (error) {
@@ -399,22 +352,27 @@ export class UsersService {
     const { userId } = taxData;
     delete taxData.userId;
     try {
+     
       const user = await this.prisma.user.findFirst({
         where: {
           id: userId,
         },
-      });
-
-      const response = await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          restaurant: {
-            ...user.restaurant,
-            taxes: [...user.restaurant.taxes, taxData],
-          },
+        include: {
+          restaurant: true,
         },
       });
-      return response;
+
+      const resturant = await this.prisma.restaurant.findUnique({
+        where: { id: user?.restaurantId },
+      });
+
+      const updatedResturant = await this.prisma.restaurant.update({
+        where: { id: resturant?.id },
+        data: {
+          taxes: [...resturant.taxes, taxData],
+        },
+      });
+      return updatedResturant;
     } catch (error) {
       const { message, status } = error;
       throw new HttpException(message, status);

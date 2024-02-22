@@ -11,7 +11,6 @@ import {
 import { BillingService } from "./billing.service";
 import { Billing } from "@prisma/client";
 import { CommonObjectType } from "types";
-import { get } from "http";
 
 @Controller("billing")
 export class BillingController {
