@@ -20,14 +20,13 @@ import { Public } from "Auth/auth.public";
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post("bulk-upload")
+  @Post("bulk-upload/:id")
   @UseInterceptors(FileInterceptor("products"))
-  createBulkTeamMember(@UploadedFile() file: any) {
+  createBulkTeamMember(@UploadedFile() file: any, @Param('id') id: string) {
     const stringifyData = file?.buffer?.toString();
     const itemsListToCreate = toJSON(stringifyData);
-
-    return this.productsService.handleItemsUpload(itemsListToCreate);
-    
+  
+    return this.productsService.handleItemsUpload(itemsListToCreate, id);
   }
 
   @Get()

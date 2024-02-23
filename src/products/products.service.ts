@@ -29,7 +29,7 @@ export class ProductsService {
     }
   }
 
-  async bulkCreate(itemData) {
+  async bulkCreate(itemData, id: string) {
     try {
       const productData = await this.prisma.products.findMany();
 
@@ -39,7 +39,7 @@ export class ProductsService {
 
       const getUser = await this.prisma.user.findFirst({
         where: {
-          id: "6594fb86c90cd77e87d7b832",
+          id: id,
         },
         include: {
           restaurant: true,
@@ -71,12 +71,12 @@ export class ProductsService {
             (t) => t.type === obj.type && t.percentage === obj.percentage
           )
       );
-      const findUser= await this.prisma.user.findFirst({
-        where:{
-          id:"6594fb86c90cd77e87d7b832"
-        }
-      })
-   
+      const findUser = await this.prisma.user.findFirst({
+        where: {
+          id: id,
+        },
+      });
+
       await this.prisma.restaurant.update({
         where: {
           id: findUser?.restaurantId,
@@ -100,7 +100,10 @@ export class ProductsService {
     }
   }
 
-  async handleItemsUpload(csvData: { [key: string]: string }[] = []) {
+  async handleItemsUpload(
+    csvData: { [key: string]: string }[] = [],
+    id: string
+  ) {
     const categoryData = csvData?.map((rowData: { [key: string]: string }) => ({
       name: rowData?.category.toLowerCase(),
     }));
@@ -149,7 +152,7 @@ export class ProductsService {
       };
     });
 
-    return this.bulkCreate(itemData);
+    return this.bulkCreate(itemData, id);
   }
 
   async getAllItems() {
