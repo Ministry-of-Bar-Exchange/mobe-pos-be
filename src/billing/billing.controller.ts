@@ -21,16 +21,22 @@ export class BillingController {
     return this.billingService.create(createBillingDto);
   }
 
+
+
   @Get()
   findAll(@Query() filters: CommonObjectType) {
     return this.billingService.findAll(filters);
   }
+  @Post("/rePrintBill")
+  rePrintBilling(@Body() reprintBill: string[]) {
+    return this.billingService.rePrintBilling(reprintBill);
+  }
+
 
   @Get('/sale')
   findSale(@Query() filters: CommonObjectType) {
     return this.billingService.findSale(filters);
   }
-
 
   @Get("table-code/:code")
   findBillFromTableCode(
@@ -39,12 +45,11 @@ export class BillingController {
   ) {
     return this.billingService.findBillFromTableCode(code, filters);
   }
- 
+
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.billingService.findOne(id);
   }
-
 
   @Post("print/:id")
   handlePrintBill(

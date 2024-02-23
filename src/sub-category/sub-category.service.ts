@@ -18,11 +18,7 @@ export class SubCategoryService {
           !oldData.some(({ name: oldCategory }) => oldCategory === category)
       );
 
-      console.debug(
-        "\n filteredList",
-        filteredList,
-        " filteredList \n "
-      );
+   
 
       if (!filteredList?.length) return;
 

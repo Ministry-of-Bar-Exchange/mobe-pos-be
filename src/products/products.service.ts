@@ -29,24 +29,83 @@ export class ProductsService {
     }
   }
 
-  async bulkCreate(itemData) {
+  async bulkCreate(itemData, id: string) {
     try {
-      const response = await this.prisma.products.createMany({
-        data: itemData,
+      const productData = await this.prisma.products.findMany();
+
+      const filteredItemData = itemData.filter((item) => {
+        return !productData.some((product) => product.name === item.name);
       });
-      return response;
+
+      const getUser = await this.prisma.user.findFirst({
+        where: {
+          id: id,
+        },
+        include: {
+          restaurant: true,
+        },
+      });
+
+      const filteredtax = filteredItemData.filter((item) => {
+        return !getUser?.restaurant?.taxes.some((product) => {
+          product.percentage === item?.tax && product?.type === item?.taxType;
+        });
+      });
+
+      let taxData = [];
+      const data = filteredtax.map((item) => {
+        taxData.push({ type: item?.taxType, percentage: Number(item?.tax) });
+      });
+
+      taxData = taxData.concat(
+        getUser?.restaurant?.taxes.map((tax) => ({
+          type: tax.type,
+          percentage: tax.percentage,
+        }))
+      );
+
+      const uniqueTaxData = taxData.filter(
+        (obj, index, self) =>
+          index ===
+          self.findIndex(
+            (t) => t.type === obj.type && t.percentage === obj.percentage
+          )
+      );
+      const findUser = await this.prisma.user.findFirst({
+        where: {
+          id: id,
+        },
+      });
+
+      await this.prisma.restaurant.update({
+        where: {
+          id: findUser?.restaurantId,
+        },
+        data: {
+          taxes: uniqueTaxData,
+        },
+      });
+
+      if (filteredItemData.length) {
+        const response = await this.prisma.products.createMany({
+          data: filteredItemData,
+        });
+        return response;
+      } else {
+        return "Nothing to Add";
+      }
     } catch (error) {
       console.debug(error, "\n bulk create failed \n");
       return error;
     }
   }
 
-  async handleItemsUpload(csvData: { [key: string]: string }[] = []) {
+  async handleItemsUpload(
+    csvData: { [key: string]: string }[] = [],
+    id: string
+  ) {
     const categoryData = csvData?.map((rowData: { [key: string]: string }) => ({
       name: rowData?.category.toLowerCase(),
-      tax:
-        replaceSpecialCharsFromTax(rowData?.["tax"]?.split(" ")?.[1]) ||
-        COMMON_TAX,
     }));
 
     const filteredCategory = categoryData.filter((category, index) => {
@@ -71,38 +130,29 @@ export class ProductsService {
       });
     });
 
-    console.debug(
-      "\n subCategoryData ",
-      subCategoryData,
-      " subCategoryData \n"
-    );
     await this.subCategoryService.bulkCreate(subCategoryData);
 
     const subCategoryResult = await this.subCategoryService.findAll();
-
-    console.debug(
-      "\n subCategoryResult",
-      subCategoryResult,
-      " subCategoryResult \n "
-    );
 
     const itemData = csvData?.map((rowData: { [key: string]: string }) => {
       const categoryDetail = subCategoryResult.find(
         (categoryInfo) =>
           categoryInfo?.name === rowData?.subcategory?.toLowerCase()
       );
+
       return {
-        name: rowData?.products,
-        price: rowData?.rate,
-        measuredIn: rowData?.unit || "",
-        code: rowData?.["item code"],
+        name: rowData?.name,
+        price: rowData?.price,
+        measuredIn: rowData?.measuredIn || "",
+        code: rowData?.code,
         categoryId: categoryDetail?.categoryId,
         subcategoryId: categoryDetail?.id,
+        tax: rowData?.tax,
+        taxType: rowData?.taxtype || "",
       };
     });
 
-    console.debug("\n itemData", itemData, " itemData \n ");
-    return this.bulkCreate(itemData);
+    return this.bulkCreate(itemData, id);
   }
 
   async getAllItems() {

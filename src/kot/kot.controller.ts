@@ -44,6 +44,12 @@ export class KotController {
     return this.kotService.createKot(createItemDto);
   }
 
+  @Post("/rePrintKot")
+  rePrintBilling(@Body() reprintKot: string[]) {
+    return this.kotService.rePrintKot(reprintKot);
+  }
+
+
   @Post("cancel-kot-item")
   cancelKotItem(
     @Body() updateKotItemPayload: Partial<CancelKotItemPayloadType>

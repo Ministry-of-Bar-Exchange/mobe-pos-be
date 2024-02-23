@@ -11,7 +11,7 @@ import {
 } from "@nestjs/common";
 import { ProductsService } from "./products.service";
 import { CreateItemDto } from "./dto/create-item.dto";
-import { UpdateItemDto, UpdateItemQuantity } from "./dto/update-item.dto";
+import { UpdateItemDto } from "./dto/update-item.dto";
 import { toJSON } from "utils/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "Auth/auth.public";
@@ -20,14 +20,13 @@ import { Public } from "Auth/auth.public";
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post("bulk-upload")
+  @Post("bulk-upload/:id")
   @UseInterceptors(FileInterceptor("products"))
-  createBulkTeamMember(@UploadedFile() file: any) {
+  createBulkTeamMember(@UploadedFile() file: any, @Param('id') id: string) {
     const stringifyData = file?.buffer?.toString();
     const itemsListToCreate = toJSON(stringifyData);
-
-    this.productsService.handleItemsUpload(itemsListToCreate);
-    return itemsListToCreate;
+  
+    return this.productsService.handleItemsUpload(itemsListToCreate, id);
   }
 
   @Get()
