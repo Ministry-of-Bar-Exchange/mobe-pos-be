@@ -3,14 +3,13 @@ import { PrismaService } from "prisma/prisma.service";
 import { Billing } from "@prisma/client";
 import { KotService } from "kot/kot.service";
 import { printBilReceipt } from "utils/printer";
-import { generateRandomNumber } from "utils/common";
-import { CommonObjectType, UpdateKotItemListType } from "types";
+import { CommonObjectType } from "types";
 
 @Injectable()
 export class BillingService {
   constructor(private prisma: PrismaService, private kotService: KotService) {}
 
-  async create(createBillingDto: Billing) {
+  async create(createBillingDto: any) {
     try {
       const steward = await this.findOneByStewardNo(
         createBillingDto?.stewardNo
@@ -35,8 +34,17 @@ export class BillingService {
       } else {
         createBillingDto.billNo = `${Number(LastBillingData.billNo) + 1}`;
       }
-
-      return this.prisma.billing.create({ data: createBillingDto });
+      const user = await this.prisma.user.findFirst({
+        where: { id: createBillingDto?.userId },
+      });
+      const restuarant = await this.prisma.restaurant.findFirst({
+        where: { id: user?.restaurantId },
+      });
+      const { userId, ...newPayload } = createBillingDto;
+      newPayload.dayCloseDate = restuarant?.dayClosingDate;
+      return this.prisma.billing.create({
+        data: newPayload,
+      });
     } catch (e) {
       if (e.message === "Please enter correct steward no") {
         throw new Error("Please enter correct steward no");

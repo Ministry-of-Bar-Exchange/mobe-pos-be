@@ -13,22 +13,30 @@ export class KotService {
     private prisma: PrismaService,
     private productService: ProductsService
   ) {}
-  async createKot(itemData: Kot) {
+  async createKot(itemData: any) {
     try {
       const steward = await this.findOneByStewardNo(itemData.stewardNo);
       let billingProcessed = false;
 
       if (steward) {
         itemData.kotNo = generateRandomNumber(8);
-
+        const user = await this.prisma.user.findFirst({
+          where: { id: itemData?.userId },
+        });
+        const restuarant = await this.prisma.restaurant.findFirst({
+          where: { id: user?.restaurantId },
+        });
+        const { userId, ...newItem } = itemData;
+        newItem.dayCloseDate = restuarant.dayClosingDate;
         const response = await this.prisma.kot.create({
-          data: itemData,
+          data: newItem,
           include: {
             table: true,
             billing: true,
           },
         });
-        if (response.billing) {
+
+        if (response?.billing) {
           const billingId = response.billing.id;
           await this.prisma.billing.update({
             where: { id: billingId },
