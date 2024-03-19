@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { Kot, KotItem } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 
@@ -15,7 +15,14 @@ export class KotService {
   ) {}
   async createKot(itemData: any) {
     try {
+      
+      if (!itemData?.stewardNo.length) {
+        throw new HttpException("Please Enter Steward No.", 404);
+      }
       const steward = await this.findOneByStewardNo(itemData.stewardNo);
+      if (!steward) {
+        throw new HttpException("Please Enter correct Steward No.", 404);
+      }
       let billingProcessed = false;
 
       if (steward) {
@@ -43,6 +50,7 @@ export class KotService {
             data: { lastVoidBillAt: new Date() },
           });
         }
+
         if (response.billing && !billingProcessed) {
           const tableId = response.table.id;
           await this.prisma.tables.update({
@@ -53,10 +61,12 @@ export class KotService {
         }
         const list = await this.addProductsDataInKotInfo([response]);
         response.kotData = list;
-
-        const { isKitchenPrinterSuccess, isBarPrinterSuccess } =
-          await printBilReceipt(response, steward, "kot");
-        return { ...response, isKitchenPrinterSuccess, isBarPrinterSuccess };
+        let result = {
+          message: "Kot Created Successfully!",
+          success: true,
+        };
+        await printBilReceipt(response, steward, "kot");
+        return { ...result };
       } else {
         let response = {
           message: "Incorrect steward number!",
@@ -65,7 +75,7 @@ export class KotService {
         return { ...response };
       }
     } catch (error) {
-      console.debug(error, "\n cannot create Kot \n");
+     
       return error;
     }
   }

@@ -9,7 +9,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 type Taxes {
   type       String
   percentage Float
@@ -29,6 +28,7 @@ model Restaurant {
   User             User[]
   dayClosingDate   String?
 }
+
 model User {
   id           String      @id @default(auto()) @map("_id") @db.ObjectId
   restaurantId String?     @db.ObjectId
@@ -58,6 +58,7 @@ model Category {
   isDeleted   Boolean       @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
   @@unique([name])
 }
 
@@ -165,7 +166,7 @@ model Kot {
   isDeleted    Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  dayCloseDate String?  
+  dayCloseDate String?
 }
 
 model Host {

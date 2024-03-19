@@ -11,6 +11,13 @@ export class BillingService {
 
   async create(createBillingDto: any) {
     try {
+      if (!createBillingDto?.stewardNo) {
+        return {
+          message: "Please enter steward number",
+          code: 200,
+          success: false,
+        };
+      }
       const steward = await this.findOneByStewardNo(
         createBillingDto?.stewardNo
       );
@@ -140,15 +147,14 @@ export class BillingService {
 
   async findSale(filters: CommonObjectType) {
     const currentDate = new Date();
-
-    const currentDateString = currentDate.toISOString().split("T")[0];
+    const day = String(currentDate.getDate()).padStart(2, "0");
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const year = currentDate.getFullYear();
+    const formattedDate = `${day}-${month}-${year}`;
 
     const billingData = await this.prisma.billing.findMany({
       where: {
-        createdAt: {
-          gte: new Date(`${currentDateString}T00:00:00.000Z`),
-          lte: new Date(`${currentDateString}T23:59:59.999Z`),
-        },
+        dayCloseDate: formattedDate,
         status: "SETTLED",
       },
     });
@@ -163,19 +169,13 @@ export class BillingService {
 
     const unsettledPrintedData = await this.prisma.billing.findMany({
       where: {
-        createdAt: {
-          gte: new Date(`${currentDateString}T00:00:00.000Z`),
-          lte: new Date(`${currentDateString}T23:59:59.999Z`),
-        },
+        dayCloseDate: formattedDate,
         isBillPrinted: true,
       },
     });
     const settledData = await this.prisma.billing.findMany({
       where: {
-        createdAt: {
-          gte: new Date(`${currentDateString}T00:00:00.000Z`),
-          lte: new Date(`${currentDateString}T23:59:59.999Z`),
-        },
+        dayCloseDate: formattedDate,
         status: "SETTLED",
       },
     });
@@ -189,10 +189,7 @@ export class BillingService {
 
     const kotBillData = await this.prisma.billing.findMany({
       where: {
-        createdAt: {
-          gte: new Date(`${currentDateString}T00:00:00.000Z`),
-          lte: new Date(`${currentDateString}T23:59:59.999Z`),
-        },
+        dayCloseDate: formattedDate,
         status: "UNSETTLED",
         isBillPrinted: false,
       },
