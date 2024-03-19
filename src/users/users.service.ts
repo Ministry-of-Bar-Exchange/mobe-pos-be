@@ -60,7 +60,6 @@ export class UsersService {
   }
 
   async handleBulkUpload(csvData: { [key: string]: string }[] = []) {
-  
     return this.bulkCreate(csvData);
   }
 
@@ -121,12 +120,21 @@ export class UsersService {
     try {
       const hash = await bcrypt.hash(itemData?.password || "", 10);
       itemData.password = hash;
-
-      // itemData.stewardNo = generateRandomNumber(4);
-      const createdUser = await this.prisma.user.create({
-        data: itemData,
+      const existingUser = await this.prisma.user.findFirst({
+        where: {
+          AND: [{ stewardNo: itemData?.stewardNo, name: itemData?.name }],
+        },
       });
-      return createdUser;
+   
+
+      if (!!existingUser) {
+        throw new HttpException("Steward number or name already exists.", 200);
+      } else {
+        const createdUser = await this.prisma.user.create({
+          data: itemData,
+        });
+        return createdUser;
+      }
     } catch (error) {
       console.debug(error, "\n cannot create user \n");
       return error;
@@ -168,11 +176,10 @@ export class UsersService {
         const particularUser = await this.prisma.user.findFirst({
           where: {
             id: restaurantAuthenticateDto?.userId,
-            
           },
-          include:{
-            restaurant:true
-          }
+          include: {
+            restaurant: true,
+          },
         });
         const matchPassword = await bcrypt.compare(
           restaurantAuthenticateDto?.discountPassword,
@@ -352,7 +359,6 @@ export class UsersService {
     const { userId } = taxData;
     delete taxData.userId;
     try {
-     
       const user = await this.prisma.user.findFirst({
         where: {
           id: userId,
@@ -365,6 +371,16 @@ export class UsersService {
       const resturant = await this.prisma.restaurant.findUnique({
         where: { id: user?.restaurantId },
       });
+      const filteredData = resturant?.taxes?.filter((item: any) => {
+        return (
+          taxData?.percentage === item?.percentage &&
+          taxData?.type.toLowerCase() === item?.type.toLowerCase()
+        );
+      });
+
+      if (filteredData?.length) {
+        return new HttpException("tax already registered", 200);
+      }
 
       const updatedResturant = await this.prisma.restaurant.update({
         where: { id: resturant?.id },

@@ -9,7 +9,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 type Taxes {
   type       String
   percentage Float
@@ -27,11 +26,13 @@ model Restaurant {
   isDeleted        Boolean? @default(false)
   taxes            Taxes[]
   User             User[]
+  dayClosingDate   String?
 }
+
 model User {
   id           String      @id @default(auto()) @map("_id") @db.ObjectId
-   restaurantId String?     @db.ObjectId
-   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
+  restaurantId String?     @db.ObjectId
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
   name         String
   email        String?
   phone        String?
@@ -57,6 +58,7 @@ model Category {
   isDeleted   Boolean       @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
   @@unique([name])
 }
 
@@ -136,6 +138,7 @@ model Billing {
   isBillPrinted  Boolean?   @default(false)
   lastPrinted    DateTime?  @default(now())
   lastVoidBillAt DateTime?  @default(now())
+  dayCloseDate   String?
 }
 
 model Tables {
@@ -150,19 +153,20 @@ model Tables {
 }
 
 model Kot {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  status    KotStatus @default(ORDER_CONFIRMED)
-  kotData   KotItem[]
-  kotNo     String
-  modifier  String?
-  stewardNo String?
-  billingId String?   @db.ObjectId
-  billing   Billing?  @relation(fields: [billingId], references: [id])
-  tableId   String?   @db.ObjectId
-  table     Tables?   @relation(fields: [tableId], references: [id])
-  isDeleted Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  status       KotStatus @default(ORDER_CONFIRMED)
+  kotData      KotItem[]
+  kotNo        String
+  modifier     String?
+  stewardNo    String?
+  billingId    String?   @db.ObjectId
+  billing      Billing?  @relation(fields: [billingId], references: [id])
+  tableId      String?   @db.ObjectId
+  table        Tables?   @relation(fields: [tableId], references: [id])
+  isDeleted    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  dayCloseDate String?
 }
 
 model Host {

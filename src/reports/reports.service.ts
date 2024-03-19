@@ -1,6 +1,7 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "prisma/prisma.service";
 import { CommonObjectType } from "types";
+import { formatDate } from "utils/common";
 
 @Injectable()
 export class ReportsService {
@@ -8,21 +9,23 @@ export class ReportsService {
 
   async getAllItems(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {
         status: "SETTLED",
       };
 
       if (filters?.fromDate !== "") {
-        whereClause.createdAt = {
-          gte: filters.fromDate,
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate !== "") {
-        if (!whereClause.createdAt) {
-          whereClause.createdAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.createdAt.lte = filters?.toDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       const response = await this.prisma.billing.findMany({
@@ -41,21 +44,23 @@ export class ReportsService {
 
   async getAllSaleBySteward(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {
         stewardNo: filters?.stewardNo,
       };
 
       if (filters?.fromDate !== "") {
-        whereClause.createdAt = {
-          gte: filters.fromDate,
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate !== "") {
-        if (!whereClause.createdAt) {
-          whereClause.createdAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.createdAt.lte = filters?.toDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       const kotData = await this.prisma.kot.findMany({
@@ -84,6 +89,8 @@ export class ReportsService {
 
   async getAllSaleByTable(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const table = await this.prisma.tables.findFirst({
         where: {
           code: filters?.code,
@@ -99,16 +106,16 @@ export class ReportsService {
       }
 
       if (filters?.fromDate !== "") {
-        whereClause.createdAt = {
-          gte: filters.fromDate,
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate !== "") {
-        if (!whereClause.createdAt) {
-          whereClause.createdAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.createdAt.lte = filters?.toDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       const response = await this.prisma.billing.findMany({
@@ -124,13 +131,15 @@ export class ReportsService {
 
   async getAllVoidReports(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {
         status: "VOID",
       };
 
       if (filters?.fromDate !== "") {
         whereClause.lastVoidBillAt = {
-          gte: filters.fromDate,
+          gte: formattedFromDate,
         };
       }
 
@@ -138,7 +147,7 @@ export class ReportsService {
         if (!whereClause.lastVoidBillAt) {
           whereClause.lastVoidBillAt = {};
         }
-        whereClause.lastVoidBillAt.lte = filters?.toDate;
+        whereClause.lastVoidBillAt.lte = formattedToDate;
       }
 
       const billingData = await this.prisma.billing.findMany({
@@ -153,21 +162,23 @@ export class ReportsService {
   }
   async getAllDiscountReports(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {
         status: "SETTLED",
       };
 
       if (filters?.fromDate !== "") {
-        whereClause.updatedAt = {
-          gte: filters.fromDate,
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate !== "") {
-        if (!whereClause.updatedAt) {
-          whereClause.updatedAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.updatedAt.lte = filters?.toDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       const billingData = await this.prisma.billing.findMany({
@@ -183,19 +194,21 @@ export class ReportsService {
 
   async getCancelKotAllItems(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {};
 
       if (filters?.fromDate) {
-        whereClause.createdAt = {
-          gte: new Date(filters.fromDate),
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate) {
-        if (!whereClause.createdAt) {
-          whereClause.createdAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.createdAt.lte = new Date(filters.toDate);
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       if (filters?.kotNo) {
@@ -245,12 +258,12 @@ export class ReportsService {
       }
 
       const data = unsettledKots?.flatMap((item) => {
-        const { createdAt, kotNo, kotData, ...rest } = item;
+        const { dayCloseDate, kotNo, kotData, ...rest } = item;
         const filteredKotData = kotData?.filter(
           (cancelKot) => cancelKot?.isCanceled === true
         );
         return filteredKotData?.length
-          ? [{ createdAt, kotNo, kotData: filteredKotData, ...rest }]
+          ? [{ dayCloseDate, kotNo, kotData: filteredKotData, ...rest }]
           : [];
       });
 
@@ -263,74 +276,77 @@ export class ReportsService {
 
   async getReprintedByDate(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
+
       const whereClause: any = {
         isBillPrinted: true,
       };
       const findClause: any = {
         isBillPrinted: false,
-        status: "SETTLED"
+        status: "SETTLED",
       };
-  
+
       if (filters && filters.fromDate !== "") {
         whereClause.lastPrinted = {
-          gte: filters.fromDate,
+          gte: formattedFromDate,
         };
         findClause.lastPrinted = {
-          gte: filters.fromDate,
+          gte: formattedToDate,
         };
-
       }
-  
+
       if (filters && filters.toDate !== "") {
         if (!whereClause.lastPrinted) {
           whereClause.lastPrinted = {};
           findClause.lastPrinted = {};
         }
-        whereClause.lastPrinted.lte = filters.toDate;
-        findClause.lastPrinted.lte = filters.toDate;
+        whereClause.lastPrinted.lte = formattedToDate;
+        findClause.lastPrinted.lte = formattedToDate;
       }
-  
+
       const billingData = await this.prisma.billing.findMany({
         where: whereClause,
         include: {
-          table: true
-        }
+          table: true,
+        },
       });
-  
+
       const settledBillingData = await this.prisma.billing.findMany({
         where: findClause,
         include: {
-          table: true
-        }
+          table: true,
+        },
       });
-  
+
       const mergedData = billingData.concat(settledBillingData);
-  
+
       return mergedData;
     } catch (error) {
       const { message, status } = error;
       throw new HttpException(message, status);
     }
   }
-  
 
   async getComplimentaryDataByDate(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {
         status: "COMPLEMENTARY",
       };
 
       if (filters?.fromDate !== "") {
-        whereClause.createdAt = {
-          gte: filters.fromDate,
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate !== "") {
-        if (!whereClause.createdAt) {
-          whereClause.createdAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.createdAt.lte = filters?.toDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       const billingData = await this.prisma.billing.findMany({
@@ -346,21 +362,23 @@ export class ReportsService {
 
   async getAllItemSummary(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {
         status: "SETTLED",
       };
 
       if (filters?.fromDate !== "") {
-        whereClause.createdAt = {
-          gte: filters.fromDate,
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate !== "") {
-        if (!whereClause.createdAt) {
-          whereClause.createdAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.createdAt.lte = filters?.toDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       const response = await this.prisma.billing.findMany({
@@ -390,21 +408,23 @@ export class ReportsService {
 
   async getAllItemComplementary(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {
         status: "COMPLEMENTARY",
       };
 
       if (filters?.fromDate !== "") {
-        whereClause.createdAt = {
-          gte: filters.fromDate,
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate !== "") {
-        if (!whereClause.createdAt) {
-          whereClause.createdAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.createdAt.lte = filters?.toDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       const response = await this.prisma.billing.findMany({
@@ -420,21 +440,23 @@ export class ReportsService {
 
   async getAllItemSummaryComplementary(filters: CommonObjectType) {
     try {
+      const formattedFromDate = formatDate(filters.fromDate);
+      const formattedToDate = formatDate(filters.toDate);
       const whereClause: any = {
         status: "COMPLEMENTARY",
       };
 
       if (filters?.fromDate !== "") {
-        whereClause.createdAt = {
-          gte: filters.fromDate,
+        whereClause.dayCloseDate = {
+          gte: formattedFromDate,
         };
       }
 
       if (filters?.toDate !== "") {
-        if (!whereClause.createdAt) {
-          whereClause.createdAt = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
         }
-        whereClause.createdAt.lte = filters?.toDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
       }
 
       const response: any = await this.prisma.billing.findMany({

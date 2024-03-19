@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -60,26 +61,32 @@ export class restaurantAuthenticateService {
   //   return foundRestaurant;
   // }
 
-  // async update(
-  //   RestaurantId: string,
-  //   updateRestaurantDto: Partial<RestaurantDto>
-  // ) {
-  //   console.log(RestaurantId, "resid");
-  //   console.log(updateRestaurantDto, "upddDTo");
-  //   try {
-  //     const updatedRestaurant = await this.prisma.restaurant.update({
-  //       where: {
-  //         id: RestaurantId,
-  //       },
-  //       data: updateRestaurantDto,
-  //     });
-  //     console.log({ updateRestaurantDto });
-  //     return updatedRestaurant;
-  //   } catch (error) {
-  //     console.debug(error, "\n cannot update restaurant \n");
-  //     return error;
-  //   }
-  // }
+  async update(
+    userId: string,
+    updateRestaurantDto: Partial<RestaurantDto>
+  ) {
+    try {
+      console.log(updateRestaurantDto,"updateRestaurantDto")
+      const user = await this.prisma.user.findFirst({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        throw new HttpException("User not found", 200);
+      }
+      const UpdateRestaurant = await this.prisma.restaurant.update({
+        where: {
+          id: user?.restaurantId,
+        },
+        data: updateRestaurantDto,
+      });
+      return UpdateRestaurant;
+    } catch (error) {
+      console.debug(error, "\n cannot update restaurant \n");
+      return error;
+    }
+  }
 
   // async updatePassword(
   //   restaurantId: string,
@@ -113,7 +120,6 @@ export class restaurantAuthenticateService {
   //   }
   // }
 
-  
   // async remove(RestaurantId: string) {
   //   const deleteRestaurant = await this.prisma.restaurant.delete({
   //     where: {
@@ -159,11 +165,11 @@ export class restaurantAuthenticateService {
   //   delete taxData.restaurantId;
   //   try {
   //     const restaurant = await this.prisma.restaurant.findFirst({
-  //       where: { 
-  //         id: restaurantId 
+  //       where: {
+  //         id: restaurantId
   //       },
   //     });
-  
+
   //     const response = await this.prisma.restaurant.update({
   //       where: { id: restaurantId },
   //       data: {
@@ -175,5 +181,4 @@ export class restaurantAuthenticateService {
   //     console.debug(err, "Cannot create new tax");
   //   }
   // }
-    
 }

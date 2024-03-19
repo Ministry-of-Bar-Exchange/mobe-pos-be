@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { Kot, KotItem } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 
@@ -13,28 +13,44 @@ export class KotService {
     private prisma: PrismaService,
     private productService: ProductsService
   ) {}
-  async createKot(itemData: Kot) {
+  async createKot(itemData: any) {
     try {
+      
+      if (!itemData?.stewardNo.length) {
+        throw new HttpException("Please Enter Steward No.", 404);
+      }
       const steward = await this.findOneByStewardNo(itemData.stewardNo);
+      if (!steward) {
+        throw new HttpException("Please Enter correct Steward No.", 404);
+      }
       let billingProcessed = false;
 
       if (steward) {
         itemData.kotNo = generateRandomNumber(8);
-
+        const user = await this.prisma.user.findFirst({
+          where: { id: itemData?.userId },
+        });
+        const restuarant = await this.prisma.restaurant.findFirst({
+          where: { id: user?.restaurantId },
+        });
+        const { userId, ...newItem } = itemData;
+        newItem.dayCloseDate = restuarant.dayClosingDate;
         const response = await this.prisma.kot.create({
-          data: itemData,
+          data: newItem,
           include: {
             table: true,
             billing: true,
           },
         });
-        if (response.billing) {
+
+        if (response?.billing) {
           const billingId = response.billing.id;
           await this.prisma.billing.update({
             where: { id: billingId },
             data: { lastVoidBillAt: new Date() },
           });
         }
+
         if (response.billing && !billingProcessed) {
           const tableId = response.table.id;
           await this.prisma.tables.update({
@@ -45,10 +61,12 @@ export class KotService {
         }
         const list = await this.addProductsDataInKotInfo([response]);
         response.kotData = list;
-
-        const { isKitchenPrinterSuccess, isBarPrinterSuccess } =
-          await printBilReceipt(response, steward, "kot");
-        return { ...response, isKitchenPrinterSuccess, isBarPrinterSuccess };
+        let result = {
+          message: "Kot Created Successfully!",
+          success: true,
+        };
+        await printBilReceipt(response, steward, "kot");
+        return { ...result };
       } else {
         let response = {
           message: "Incorrect steward number!",
@@ -57,7 +75,7 @@ export class KotService {
         return { ...response };
       }
     } catch (error) {
-      console.debug(error, "\n cannot create Kot \n");
+     
       return error;
     }
   }

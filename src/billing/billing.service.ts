@@ -3,15 +3,21 @@ import { PrismaService } from "prisma/prisma.service";
 import { Billing } from "@prisma/client";
 import { KotService } from "kot/kot.service";
 import { printBilReceipt } from "utils/printer";
-import { generateRandomNumber } from "utils/common";
-import { CommonObjectType, UpdateKotItemListType } from "types";
+import { CommonObjectType } from "types";
 
 @Injectable()
 export class BillingService {
   constructor(private prisma: PrismaService, private kotService: KotService) {}
 
-  async create(createBillingDto: Billing) {
+  async create(createBillingDto: any) {
     try {
+      if (!createBillingDto?.stewardNo) {
+        return {
+          message: "Please enter steward number",
+          code: 200,
+          success: false,
+        };
+      }
       const steward = await this.findOneByStewardNo(
         createBillingDto?.stewardNo
       );
@@ -35,8 +41,17 @@ export class BillingService {
       } else {
         createBillingDto.billNo = `${Number(LastBillingData.billNo) + 1}`;
       }
-
-      return this.prisma.billing.create({ data: createBillingDto });
+      const user = await this.prisma.user.findFirst({
+        where: { id: createBillingDto?.userId },
+      });
+      const restuarant = await this.prisma.restaurant.findFirst({
+        where: { id: user?.restaurantId },
+      });
+      const { userId, ...newPayload } = createBillingDto;
+      newPayload.dayCloseDate = restuarant?.dayClosingDate;
+      return this.prisma.billing.create({
+        data: newPayload,
+      });
     } catch (e) {
       if (e.message === "Please enter correct steward no") {
         throw new Error("Please enter correct steward no");
@@ -132,15 +147,14 @@ export class BillingService {
 
   async findSale(filters: CommonObjectType) {
     const currentDate = new Date();
-
-    const currentDateString = currentDate.toISOString().split("T")[0];
+    const day = String(currentDate.getDate()).padStart(2, "0");
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const year = currentDate.getFullYear();
+    const formattedDate = `${day}-${month}-${year}`;
 
     const billingData = await this.prisma.billing.findMany({
       where: {
-        createdAt: {
-          gte: new Date(`${currentDateString}T00:00:00.000Z`),
-          lte: new Date(`${currentDateString}T23:59:59.999Z`),
-        },
+        dayCloseDate: formattedDate,
         status: "SETTLED",
       },
     });
@@ -155,19 +169,13 @@ export class BillingService {
 
     const unsettledPrintedData = await this.prisma.billing.findMany({
       where: {
-        createdAt: {
-          gte: new Date(`${currentDateString}T00:00:00.000Z`),
-          lte: new Date(`${currentDateString}T23:59:59.999Z`),
-        },
+        dayCloseDate: formattedDate,
         isBillPrinted: true,
       },
     });
     const settledData = await this.prisma.billing.findMany({
       where: {
-        createdAt: {
-          gte: new Date(`${currentDateString}T00:00:00.000Z`),
-          lte: new Date(`${currentDateString}T23:59:59.999Z`),
-        },
+        dayCloseDate: formattedDate,
         status: "SETTLED",
       },
     });
@@ -181,10 +189,7 @@ export class BillingService {
 
     const kotBillData = await this.prisma.billing.findMany({
       where: {
-        createdAt: {
-          gte: new Date(`${currentDateString}T00:00:00.000Z`),
-          lte: new Date(`${currentDateString}T23:59:59.999Z`),
-        },
+        dayCloseDate: formattedDate,
         status: "UNSETTLED",
         isBillPrinted: false,
       },

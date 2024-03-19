@@ -33,10 +33,10 @@ export class restaurantAuthenticateController {
   //   return this.restaurantAuthenticate.findOne(id);
   // }
 
-  // @Patch(":id")
-  // update(@Param("id") id: string, @Body() updateRestaurantDto: any) {
-  //   return this.restaurantAuthenticate.update(id, updateRestaurantDto);
-  // }
+  @Patch("/user/:id")
+  update(@Param("id") id: string, @Body() updateRestaurantDto: any) {
+    return this.restaurantAuthenticate.update(id, updateRestaurantDto);
+  }
 
   // @Patch("updatePassword/:id")
   // updatePassword(@Param("id") id: string, @Body() updateRestaurantDto: any) {

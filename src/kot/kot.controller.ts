@@ -40,7 +40,7 @@ export class KotController {
   }
 
   @Post()
-  createKot(@Body() createItemDto: Kot) {
+  createKot(@Body() createItemDto: any) {
     return this.kotService.createKot(createItemDto);
   }
 

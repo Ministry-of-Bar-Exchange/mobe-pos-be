@@ -4,4 +4,5 @@ export class  CreateRestaurantDto{
     address:string;
     taxId:string;
     taxIdType:string;
+    dayClosingDate ?: string
 }
