@@ -288,21 +288,21 @@ export class ReportsService {
       };
 
       if (filters && filters.fromDate !== "") {
-        whereClause.lastPrinted = {
+        whereClause.dayCloseDate = {
           gte: formattedFromDate,
         };
-        findClause.lastPrinted = {
+        findClause.dayCloseDate = {
           gte: formattedToDate,
         };
       }
 
       if (filters && filters.toDate !== "") {
-        if (!whereClause.lastPrinted) {
-          whereClause.lastPrinted = {};
-          findClause.lastPrinted = {};
+        if (!whereClause.dayCloseDate) {
+          whereClause.dayCloseDate = {};
+          findClause.dayCloseDate = {};
         }
-        whereClause.lastPrinted.lte = formattedToDate;
-        findClause.lastPrinted.lte = formattedToDate;
+        whereClause.dayCloseDate.lte = formattedToDate;
+        findClause.dayCloseDate.lte = formattedToDate;
       }
 
       const billingData = await this.prisma.billing.findMany({
