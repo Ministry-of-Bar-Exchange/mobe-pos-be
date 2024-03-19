@@ -8,6 +8,11 @@ export class TablesService {
   constructor(private prisma: PrismaService) {}
 
   create(createTableDto: Tables) {
+    // for(const i =1;i<=50;i++){
+    //   await this.prisma.tables.create({
+
+    //   })
+    // }
     return this.prisma.tables.create({ data: createTableDto });
   }
 
