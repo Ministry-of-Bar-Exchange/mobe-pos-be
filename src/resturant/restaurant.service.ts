@@ -1,6 +1,7 @@
 import {
   HttpException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -61,12 +62,10 @@ export class restaurantAuthenticateService {
   //   return foundRestaurant;
   // }
 
-  async update(
-    userId: string,
-    updateRestaurantDto: Partial<RestaurantDto>
-  ) {
+  async update(userId: string, updateRestaurantDto: Partial<RestaurantDto>) {
     try {
-      console.log(updateRestaurantDto,"updateRestaurantDto")
+      console.log(updateRestaurantDto, "updateRestaurantDto");
+      updateRestaurantDto?.dayClosingDate;
       const user = await this.prisma.user.findFirst({
         where: {
           id: userId,
@@ -75,13 +74,26 @@ export class restaurantAuthenticateService {
       if (!user) {
         throw new HttpException("User not found", 200);
       }
-      const UpdateRestaurant = await this.prisma.restaurant.update({
+      const fetchRestaurant = await this.prisma.restaurant.findFirst({
+        where: {
+          id: user?.restaurantId,
+        },
+      });
+      const updateDate = new Date(updateRestaurantDto?.dayClosingDate);
+      const fetchDate = new Date(fetchRestaurant?.dayClosingDate);
+
+      if (updateDate < fetchDate) {
+        throw new HttpException(
+          "Please select the current/upcoming date ",
+          200
+        );
+      }
+      return await this.prisma.restaurant.update({
         where: {
           id: user?.restaurantId,
         },
         data: updateRestaurantDto,
       });
-      return UpdateRestaurant;
     } catch (error) {
       console.debug(error, "\n cannot update restaurant \n");
       return error;
@@ -181,4 +193,36 @@ export class restaurantAuthenticateService {
   //     console.debug(err, "Cannot create new tax");
   //   }
   // }
+  //   async getRestaurantById(id:string) {
+  //   try {
+  //     const response = await this.prisma.user.findFirst({
+  //       where: {
+  //         id
+  //       },
+  //       include:{
+  //         restaurant:true
+  //       }
+  //     });
+  //     return response;
+  //   } catch (err) {
+  //     console.debug(err, "Cannot get Restaurant");
+  //   }
+  // }
+
+  async getRestaurantById(id: string) {
+    try {
+      const response = await this.prisma.user.findFirst({
+        where: {
+          id,
+        },
+        include: {
+          restaurant: true,
+        },
+      });
+      return response;
+    } catch (err) {
+      console.debug(err, "Cannot get Restaurant");
+      throw new InternalServerErrorException("Error getting restaurant");
+    }
+  }
 }
