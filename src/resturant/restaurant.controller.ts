@@ -1,8 +1,17 @@
-import { Controller, Param, Post, Body, Patch, Delete, Get } from "@nestjs/common";
+import {
+  Controller,
+  Param,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  Get,
+  NotFoundException,
+} from "@nestjs/common";
 import { restaurantAuthenticateService } from "./restaurant.service";
 import { restaurantAuthenticateDto } from "./dto/restaurant.dto";
 import { CreateRestaurantDto } from "./dto/create-restaurant.dto";
-import { Restaurant as RestaurantDto  } from "@prisma/client";
+import { Restaurant as RestaurantDto } from "@prisma/client";
 import { UpdatePasswordDto } from "./dto/restaurant.dto";
 
 import { Taxes } from "@prisma/client";
@@ -48,10 +57,6 @@ export class restaurantAuthenticateController {
   //   return this.restaurantAuthenticate.remove(id);
   // }
 
-
-
-  
-
   // @Post("/tax")
   // createTax(@Body() createItemDto: Taxes) {
   //   return this.restaurantAuthenticate.createTax(createItemDto);
@@ -61,4 +66,22 @@ export class restaurantAuthenticateController {
   // getAllTaxList(@Param("id") id : string) {
   //   return this.restaurantAuthenticate.getAllTaxList(id);
   // }
+
+  // @Get(':id')
+  // async getRestaurantById(@Param('id') id: string) {
+  //   const restaurant = await this.getRestaurantById.findOne(id);
+  //   if (!restaurant) {
+  //     throw new NotFoundException('Restaurant not found');
+  //   }
+  //   return restaurant;
+  // }
+
+  @Get(":id")
+  async getRestaurantById(@Param("id") id: string) {
+    const restaurant = await this.restaurantAuthenticate.getRestaurantById(id);
+    if (!restaurant) {
+      throw new NotFoundException("Restaurant not found");
+    }
+    return restaurant;
+  }
 }
