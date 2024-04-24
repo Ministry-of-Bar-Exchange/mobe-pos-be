@@ -10,6 +10,7 @@ import {
 import { SubCategoryService } from "./sub-category.service";
 import { CreateSubCategoryDto } from "./dto/create-sub-category.dto";
 import { UpdateSubCategoryDto } from "./dto/update-sub-category.dto";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("sub-category")
 export class SubCategoryController {
@@ -21,6 +22,7 @@ export class SubCategoryController {
   }
 
   @Get(':id')
+  @ApiBearerAuth('access-token')
   readCategory(@Param("id") id: string) {
     return this.subCategoryService.read(id);
   }
@@ -36,6 +38,7 @@ export class SubCategoryController {
   }
 
   @Patch(":id")
+  @ApiBearerAuth('access-token')
   updateSubCategory(
     @Param("id") id: string,
     @Body() updateSubCategory: UpdateSubCategoryDto

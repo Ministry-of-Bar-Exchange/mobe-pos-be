@@ -15,12 +15,14 @@ import { UpdateItemDto } from "./dto/update-item.dto";
 import { toJSON } from "utils/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "Auth/auth.public";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("products")
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post("bulk-upload/:id")
+  @ApiBearerAuth('access-token')
   @UseInterceptors(FileInterceptor("products"))
   createBulkTeamMember(@UploadedFile() file: any, @Param('id') id: string) {
     const stringifyData = file?.buffer?.toString();
@@ -35,6 +37,7 @@ export class ProductsController {
   }
 
   @Get(":id")
+  @ApiBearerAuth('access-token')
   readCategory(@Param("id") id: string) {
     return this.productsService.read(id);
   }
@@ -46,6 +49,7 @@ export class ProductsController {
   }
 
   @Patch(":id")
+  @ApiBearerAuth('access-token')
   updateItem(@Param("id") id: string, @Body() updateItemDto: UpdateItemDto) {
     return this.productsService.updateItem(id, updateItemDto);
   }
@@ -57,6 +61,7 @@ export class ProductsController {
   // }
 
   @Patch("delete/:id")
+  @ApiBearerAuth('access-token')
   deleteItem(@Param("id") id: string) {
     return this.productsService.deleteItem(id);
   }

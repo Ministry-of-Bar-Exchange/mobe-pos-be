@@ -11,6 +11,7 @@ import {
 import { BillingService } from "./billing.service";
 import { Billing } from "@prisma/client";
 import { CommonObjectType } from "types";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("billing")
 export class BillingController {
@@ -52,6 +53,7 @@ export class BillingController {
   }
 
   @Post("print/:id")
+  @ApiBearerAuth('access-token')
   handlePrintBill(
     @Param("id") id: string,
     @Body() updateBillingDto: Partial<Billing>
@@ -70,11 +72,13 @@ export class BillingController {
   }
 
   @Patch(":id")
+  @ApiBearerAuth('access-token')
   update(@Param("id") id: string, @Body() updateBillingDto: Partial<Billing>) {
     return this.billingService.update(id, updateBillingDto);
   }
 
   @Delete(":id")
+  @ApiBearerAuth('access-token')
   remove(@Param("id") id: string) {
     return this.billingService.remove(id);
   }

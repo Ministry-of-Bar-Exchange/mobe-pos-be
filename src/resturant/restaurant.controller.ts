@@ -15,6 +15,7 @@ import { Restaurant as RestaurantDto } from "@prisma/client";
 import { UpdatePasswordDto } from "./dto/restaurant.dto";
 
 import { Taxes } from "@prisma/client";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("/restaurant")
 export class restaurantAuthenticateController {
@@ -43,6 +44,7 @@ export class restaurantAuthenticateController {
   // }
 
   @Patch("/user/:id")
+  @ApiBearerAuth('access-token')
   update(@Param("id") id: string, @Body() updateRestaurantDto: any) {
     return this.restaurantAuthenticate.update(id, updateRestaurantDto);
   }
@@ -77,6 +79,7 @@ export class restaurantAuthenticateController {
   // }
 
   @Get(":id")
+  @ApiBearerAuth('access-token')
   async getRestaurantById(@Param("id") id: string) {
     const restaurant = await this.restaurantAuthenticate.getRestaurantById(id);
     if (!restaurant) {

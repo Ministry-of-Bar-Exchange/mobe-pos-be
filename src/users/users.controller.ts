@@ -21,12 +21,14 @@ import {
   restaurantAuthenticateDto,
   updateRestaurant,
 } from "./dto/user-restaurant.dto";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("users")
 export class UsersController {
   constructor(private readonly teamMemberService: UsersService) {}
 
   @Post("bulk-upload")
+  @ApiBearerAuth('access-token')
   @UseInterceptors(FileInterceptor("users"))
   createBulkTeamMember(@UploadedFile() file: any) {
     const stringifyData = file?.buffer?.toString();
@@ -55,26 +57,31 @@ export class UsersController {
   }
 
   @Get(":id")
+  @ApiBearerAuth('access-token')
   findOne(@Param("id") id: string) {
     return this.teamMemberService.findOne(id);
   }
 
   @Patch(":id")
+  @ApiBearerAuth('access-token')
   update(@Param("id") id: string, @Body() updateTeamMemberDto: any) {
     return this.teamMemberService.update(id, updateTeamMemberDto);
   }
 
   @Patch("delete/:id")
+  @ApiBearerAuth('access-token')
   remove(@Param("id") id: string) {
     return this.teamMemberService.remove(id);
   }
 
   @Patch("delete/:id")
+  @ApiBearerAuth('access-token')
   deleteItem(@Param("id") id: string) {
     return this.teamMemberService.deleteItem(id);
   }
 
   @Patch("restaurant/:id")
+  @ApiBearerAuth('access-token')
   updateRestaurant(
     @Param("id") userId: string,
     @Body() updateRestaurantDto: updateRestaurant
@@ -83,6 +90,7 @@ export class UsersController {
   }
 
   @Patch("restaurant/updatePassword/:id")
+  @ApiBearerAuth('access-token')
   updatePassword(
     @Param("id") userId: string,
     @Body() updateRestaurantDto: UpdatePasswordDto
@@ -116,15 +124,18 @@ export class UsersController {
   }
 
   @Post("restaurant/tax/:id")
+  @ApiBearerAuth('access-token')
   getAllTaxList(@Param("id") userId: string) {
     return this.teamMemberService.getAllTaxList(userId);
   }
 
   @Delete("restaurant/delete/:id")
+  @ApiBearerAuth('access-token')
   removeRestaurant(@Param("id") id: string) {
     return this.teamMemberService.removeRestaurant(id);
   }
   @Delete("remove/:id")
+  @ApiBearerAuth('access-token')
   removeSteward(@Param("id") id: string) {
     return this.teamMemberService.removeSteward(id);
   }

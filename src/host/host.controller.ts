@@ -11,6 +11,7 @@ import { HostService } from "./host.service";
 import { Host } from "@prisma/client";
 import { CommonObjectType } from "types";
 import { UpdateHostDto } from "./dto/update-host.dto";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("host")
 export class HostController {
@@ -35,6 +36,7 @@ export class HostController {
   }
 
   @Patch(":id")
+  @ApiBearerAuth('access-token')
   update(@Param("id") id: string, @Body() updateHostDto: UpdateHostDto) {
     return this.hostService.update(id, updateHostDto);
   }
