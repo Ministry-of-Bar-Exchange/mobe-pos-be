@@ -1,21 +1,21 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 class KotItem {
-  @ApiProperty({ required: false })
+  @ApiProperty()
   productId: string;
-  @ApiProperty({ required: false })
+  @ApiProperty()
   quantity: string;
 }
 
 export class CreateItemDto {
-  @ApiProperty({ required: false })
+  @ApiProperty()
   billingId: string;
-  @ApiProperty({ required: false })
+  @ApiProperty()
   kotData: KotItem;
-  @ApiProperty({ required: false })
+  @ApiProperty()
   stewardNo: string;
-  @ApiProperty({ required: false })
+  @ApiProperty()
   tableId: string;
-  @ApiProperty({ required: false })
+  @ApiProperty()
   userId: string;
 }

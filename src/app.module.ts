@@ -17,6 +17,8 @@ import { KotModule } from "kot/kot.module";
 import { RestaurantModule } from "resturant/restaurant.module";
 import { ReportsModule } from "reports/reports.module";
 import { HostModule } from "host/host.module";
+import { AppController } from "app.controller";
+import { AppService } from "app.service";
 
 @Module({
   imports: [
@@ -56,6 +58,7 @@ import { HostModule } from "host/host.module";
         // },
       }),
       inject: [ConfigService],
+      
     }),
     KotModule,
     ProductsModule,
@@ -65,6 +68,7 @@ import { HostModule } from "host/host.module";
     TablesModule,
     ReportsModule
   ],
-  controllers: [],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

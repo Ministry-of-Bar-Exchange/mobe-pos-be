@@ -38,20 +38,24 @@ export class UsersController {
   }
 
   @Post()
+  @ApiBearerAuth('access-token')
   create(@Body() createTeamMemberDto: UserDto) {
     return this.teamMemberService.create(createTeamMemberDto);
   }
 
   @Get()
+  @ApiBearerAuth('access-token')
   findAll() {
     return this.teamMemberService.findAll();
   }
 
   @Get("/restaurant")
+  @ApiBearerAuth('access-token')
   findAllRestaurant() {
     return this.teamMemberService.findAllRestaurant();
   }
   @Get("/steward")
+  @ApiBearerAuth('access-token')
   getSteward() {
     return this.teamMemberService.getSteward();
   }
@@ -103,11 +107,13 @@ export class UsersController {
 
   @Public()
   @Post("/user")
+  @ApiBearerAuth('access-token')
   createUser(@Body() createItemDto: UserDto) {
     return this.teamMemberService.createUser(createItemDto);
   }
 
   @Post("/restaurant/validate")
+  @ApiBearerAuth('access-token')
   authenticate(@Body() restaurantAuthenticateDto: restaurantAuthenticateDto) {
     return this.teamMemberService.authenticate(restaurantAuthenticateDto);
   }
@@ -119,6 +125,7 @@ export class UsersController {
 
   // Tax
   @Post("restaurant/tax")
+  @ApiBearerAuth('access-token')
   createTax(@Body() createItemDto: Taxes) {
     return this.teamMemberService.createTax(createItemDto);
   }

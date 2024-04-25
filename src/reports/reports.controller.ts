@@ -71,6 +71,7 @@ export class ReportsController {
   }
 
   @Get("options")
+  @ApiBearerAuth("access-token")
   getAllOptions() {
     return this.reportsService.getAllOptions();
   }

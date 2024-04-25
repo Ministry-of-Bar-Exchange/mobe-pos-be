@@ -17,29 +17,31 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Get()
+  @ApiBearerAuth("access-token")
   getCategory() {
     return this.categoryService.findAll();
   }
 
-  @Get(':id')
-  @ApiBearerAuth('access-token')
+  @Get(":id")
+  @ApiBearerAuth("access-token")
   readCategory(@Param("id") id: string) {
     return this.categoryService.read(id);
   }
 
   @Post()
+  @ApiBearerAuth("access-token")
   createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoryService.createCategory(createCategoryDto);
   }
 
   @Patch("delete/:id")
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth("access-token")
   deleteCategory(@Param("id") id: string) {
     return this.categoryService.deleteCategory(id);
   }
 
   @Patch(":id")
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth("access-token")
   updateCategory(
     @Param("id") id: string,
     @Body() updateCategoryDto: UpdateCategoryDto
@@ -47,7 +49,8 @@ export class CategoryController {
     return this.categoryService.updateCategory(id, updateCategoryDto);
   }
   @Delete()
-  deleteAll(){
+  @ApiBearerAuth("access-token")
+  deleteAll() {
     return this.categoryService.deleteAll();
   }
 }
