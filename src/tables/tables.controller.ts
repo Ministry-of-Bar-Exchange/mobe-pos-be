@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  HttpException,
+  HttpStatus,
 } from "@nestjs/common";
 import { TablesService } from "./tables.service";
 import { Tables } from "@prisma/client";
@@ -19,11 +21,20 @@ export class TablesController {
   create(@Body() createTableDto: Tables) {
     return this.tablesService.create(createTableDto);
   }
-
   @Post('multi')
-  createMultipleTables(@Body() createMultipleTableDto: CreateMultipleTableDto) {
-    return this.tablesService.createMultipleTables(createMultipleTableDto);
+  async createMultipleTables(@Body() createMultipleTableDto: CreateMultipleTableDto) {
+    try {
+      await this.tablesService.createMultipleTables(createMultipleTableDto);
+      return { success: true };
+    } catch (error) {
+      if (error.message === "Cannot hide tables that are not available.") {
+        throw new HttpException('Cannot hide tables that are not available.', HttpStatus.BAD_REQUEST);
+      } else {
+        throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
   }
+
 
   @Get()
   findAll() {
