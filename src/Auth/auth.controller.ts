@@ -16,6 +16,7 @@ import { AuthGuard } from "./jwt-auth.guard";
 import { LocalAuthGuard } from "./local-auth.guard";
 import { Public } from "./auth.public";
 import { LoginDto } from "./dto/login-dto";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("auth")
 export class AuthController {
