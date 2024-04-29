@@ -10,8 +10,9 @@ import {
 import { KotService } from "./kot.service";
 import { Kot } from "@prisma/client";
 import { CancelKotItemPayloadType } from "types";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Kot")
 @Controller("kot")
 export class KotController {
   constructor(private readonly kotService: KotService) {}
@@ -70,14 +71,12 @@ export class KotController {
 
   @Patch(":id")
    @ApiBearerAuth("access-token")
-  @ApiBearerAuth('access-token')
   updateItem(@Param("id") id: string, @Body() updateItemDto: Partial<Kot>) {
     return this.kotService.updateItem(id, updateItemDto);
   }
 
   @Delete(":id")
    @ApiBearerAuth("access-token")
-  @ApiBearerAuth('access-token')
   deleteItem(@Param("id") id: string) {
     return this.kotService.deleteItem(id);
   }

@@ -11,8 +11,9 @@ import { HostService } from "./host.service";
 import { Host } from "@prisma/client";
 import { CommonObjectType } from "types";
 import { UpdateHostDto } from "./dto/update-host.dto";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Host")
 @Controller("host")
 export class HostController {
   constructor(private readonly hostService: HostService) {}

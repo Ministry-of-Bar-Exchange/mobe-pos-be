@@ -15,8 +15,8 @@ import { Restaurant as RestaurantDto } from "@prisma/client";
 import { UpdatePasswordDto } from "./dto/restaurant.dto";
 
 import { Taxes } from "@prisma/client";
-import { ApiBearerAuth } from "@nestjs/swagger";
-
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+@ApiTags("Restaurant")
 @Controller("/restaurant")
 export class restaurantAuthenticateController {
   constructor(

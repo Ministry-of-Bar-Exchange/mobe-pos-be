@@ -21,8 +21,8 @@ import {
   restaurantAuthenticateDto,
   updateRestaurant,
 } from "./dto/user-restaurant.dto";
-import { ApiBearerAuth } from "@nestjs/swagger";
-
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+@ApiTags("Users")
 @Controller("users")
 export class UsersController {
   constructor(private readonly teamMemberService: UsersService) {}

@@ -15,8 +15,8 @@ import { UpdateItemDto } from "./dto/update-item.dto";
 import { toJSON } from "utils/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "Auth/auth.public";
-import { ApiBearerAuth } from "@nestjs/swagger";
-
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+@ApiTags("Products")
 @Controller("products")
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
