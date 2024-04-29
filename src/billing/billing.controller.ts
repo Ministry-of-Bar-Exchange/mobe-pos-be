@@ -11,8 +11,8 @@ import {
 import { BillingService } from "./billing.service";
 import { Billing } from "@prisma/client";
 import { CommonObjectType } from "types";
-import { ApiBearerAuth } from "@nestjs/swagger";
-
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+@ApiTags("Billing")
 @Controller("billing")
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}

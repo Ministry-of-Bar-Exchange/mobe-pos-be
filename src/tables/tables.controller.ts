@@ -10,8 +10,8 @@ import {
 import { TablesService } from "./tables.service";
 import { Tables } from "@prisma/client";
 import { CreateMultipleTableDto } from "./dto/create-table.dto";
-import { ApiBearerAuth } from "@nestjs/swagger";
-
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+@ApiTags("Tables")
 @Controller("tables")
 export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
