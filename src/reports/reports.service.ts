@@ -27,7 +27,6 @@ export class ReportsService {
         }
         whereClause.dayCloseDate.lte = formattedToDate;
       }
-
       const response = await this.prisma.billing.findMany({
         where: whereClause,
         include: {
