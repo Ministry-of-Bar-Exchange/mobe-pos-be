@@ -249,8 +249,8 @@ export class BillingService {
     };
   }
 
-  findOne(id: string) {
-    return this.prisma.billing.findUnique({
+  async findOne(id: string) {
+    return await this.prisma.billing.findFirst({
       where: {
         id,
       },
@@ -522,12 +522,14 @@ export class BillingService {
           tableId: toTable?.id,
         },
       });
+
       const hostToUpdate = await this.prisma.host.findFirst({
         where: {
-          tableCode: updateBillingDto?.from,
+          tableCode: `${updateBillingDto?.from}`,
           status: false,
         },
       });
+      console.log(hostToUpdate, "hostToUpdate");
       if (hostToUpdate) {
         await this.prisma.host.update({
           where: { id: hostToUpdate?.id },

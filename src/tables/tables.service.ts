@@ -21,10 +21,10 @@ export class TablesService {
     const presentTables = await this.prisma.tables.findMany({});
 
     await Promise.all([
-      (toCreate || defaultTable) &&
+      toCreate.length &&
         this.createTables(toCreate, toHide, presentTables, defaultTable),
-      toHide && this.hideTables(toHide, presentTables),
-      toUnhide && this.unhideTables(toUnhide, presentTables),
+      toHide.length && this.hideTables(toHide, presentTables),
+      toUnhide.length && this.unhideTables(toUnhide, presentTables),
     ]);
 
     return { success: true };
@@ -61,11 +61,13 @@ export class TablesService {
     const dataToHideUpdate = toHide
       .filter((info) => {
         const foundTable = presentTables.find((table) => table.code === info);
-        return foundTable && foundTable.status === 'AVAILABLE';
+        return foundTable && foundTable.status === "AVAILABLE";
       })
       .map(async (infoToHide) => {
-        const foundTable = presentTables.find((table) => table.code === infoToHide);
-  
+        const foundTable = presentTables.find(
+          (table) => table.code === infoToHide
+        );
+
         return this.prisma.tables.update({
           where: {
             id: foundTable.id,
@@ -73,14 +75,13 @@ export class TablesService {
           data: { isDeleted: true },
         });
       });
-  
+
     if (dataToHideUpdate?.length) {
       await Promise.all(dataToHideUpdate);
     } else {
       throw new Error("Cannot hide tables that are not available.");
     }
   }
-  
 
   async unhideTables(toUnhide, presentTables) {
     const dataToUnhideUpdate = toUnhide
