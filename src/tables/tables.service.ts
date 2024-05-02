@@ -57,15 +57,15 @@ export class TablesService {
       });
     }
   }
-
   async hideTables(toHide, presentTables) {
     const dataToHideUpdate = toHide
-      .filter((info) => presentTables.some((table) => table.code === info))
+      .filter((info) => {
+        const foundTable = presentTables.find((table) => table.code === info);
+        return foundTable && foundTable.status === 'AVAILABLE';
+      })
       .map(async (infoToHide) => {
-        const foundTable = presentTables.find(
-          (table) => table.code === infoToHide
-        );
-
+        const foundTable = presentTables.find((table) => table.code === infoToHide);
+  
         return this.prisma.tables.update({
           where: {
             id: foundTable.id,
@@ -73,11 +73,14 @@ export class TablesService {
           data: { isDeleted: true },
         });
       });
-
+  
     if (dataToHideUpdate?.length) {
       await Promise.all(dataToHideUpdate);
+    } else {
+      throw new Error("Cannot hide tables that are not available.");
     }
   }
+  
 
   async unhideTables(toUnhide, presentTables) {
     const dataToUnhideUpdate = toUnhide
@@ -108,23 +111,23 @@ export class TablesService {
         isDeleted: true,
         updatedAt: true,
         createdAt: true,
-        status:true,
+        status: true,
         billing: {
           select: {
-            isBillPrinted: true
-          }
+            isBillPrinted: true,
+          },
         },
       },
     });
-  
-    const result = data.map(item => {
+
+    const result = data.map((item) => {
       let value = false;
-      item.billing?.map(billingItem =>  {
-        if(billingItem.isBillPrinted) {
-          value = billingItem.isBillPrinted
+      item.billing?.map((billingItem) => {
+        if (billingItem.isBillPrinted) {
+          value = billingItem.isBillPrinted;
           return;
         }
-      })
+      });
       return {
         id: item.id,
         code: item.code,
@@ -132,10 +135,10 @@ export class TablesService {
         updatedAt: item.updatedAt,
         createdAt: item.createdAt,
         isBillPrinted: value,
-        status:item.status,
+        status: item.status,
       };
     });
-  
+
     return result;
   }
 

@@ -240,11 +240,11 @@ export class BillingService {
     duplicatedProducts?.map((item: any) => {
       unbilled += Number(item?.price);
     });
-    const saleData = todaySale + unbilled;
+    const totalSaleData = todaySale + unbilled;
     return {
       cashSale,
       cardSale,
-      todaySale: saleData,
+      todaySale: totalSaleData,
       unbilled,
     };
   }

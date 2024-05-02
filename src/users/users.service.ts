@@ -88,6 +88,9 @@ export class UsersService {
       where: {
         id: userId,
       },
+      include: {
+        restaurant: true,
+      },
     });
     return foundUser;
   }
@@ -125,7 +128,6 @@ export class UsersService {
           AND: [{ stewardNo: itemData?.stewardNo, name: itemData?.name }],
         },
       });
-   
 
       if (!!existingUser) {
         throw new HttpException("Steward number or name already exists.", 200);
@@ -255,16 +257,12 @@ export class UsersService {
   async updateRestaurant(userId: string, restaurantData: any) {
     try {
       const selectedUser = await this.findUserRestaurant(userId);
-
-      const updatedRestaurant = await this.prisma.user.update({
+      const updatedRestaurant = await this.prisma.restaurant.update({
         where: {
-          id: userId,
+          id: selectedUser?.id,
         },
-        data: {
-          restaurant: { ...selectedUser, ...restaurantData },
-        },
+        data: restaurantData,
       });
-
       return updatedRestaurant;
     } catch (error) {
       const { message, status } = error;
