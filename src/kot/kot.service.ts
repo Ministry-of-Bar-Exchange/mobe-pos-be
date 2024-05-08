@@ -15,67 +15,62 @@ export class KotService {
   ) {}
   async createKot(itemData: any) {
     try {
-      
-      if (!itemData?.stewardNo.length) {
-        throw new HttpException("Please Enter Steward No.", 404);
+      if (itemData?.stewardNo?.length) {
+        const steward = await this.findOneByStewardNo(itemData?.stewardNo);
+        if (!steward) {
+          throw new HttpException("Please Enter correct Steward No.", 404);
+        }
       }
-      const steward = await this.findOneByStewardNo(itemData.stewardNo);
-      if (!steward) {
-        throw new HttpException("Please Enter correct Steward No.", 404);
-      }
+
       let billingProcessed = false;
+      itemData.kotNo = generateRandomNumber(8);
+      const user = await this.prisma.user.findFirst({
+        where: { id: itemData?.userId },
+      });
 
-      if (steward) {
-        itemData.kotNo = generateRandomNumber(8);
-        const user = await this.prisma.user.findFirst({
-          where: { id: itemData?.userId },
-        });
-        const restuarant = await this.prisma.restaurant.findFirst({
-          where: { id: user?.restaurantId },
-        });
-        const { userId, ...newItem } = itemData;
-        newItem.dayCloseDate = restuarant.dayClosingDate;
-        const response = await this.prisma.kot.create({
-          data: newItem,
-          include: {
-            table: true,
-            billing: true,
-          },
-        });
+      const restuarant = await this.prisma.restaurant.findFirst({
+        where: { id: user?.restaurantId },
+      });
 
-        if (response?.billing) {
-          const billingId = response.billing.id;
-          await this.prisma.billing.update({
-            where: { id: billingId },
-            data: { lastVoidBillAt: new Date() },
-          });
-        }
+      const { userId, ...newItem } = itemData;
+      newItem.dayCloseDate = restuarant.dayClosingDate;
+      const response = await this.prisma.kot.create({
+        data: newItem,
+        include: {
+          table: true,
+          billing: true,
+        },
+      });
 
-        if (response.billing && !billingProcessed) {
-          const tableId = response.table.id;
-          await this.prisma.tables.update({
-            where: { id: tableId },
-            data: { status: "OCCUPIED" },
-          });
-          billingProcessed = true;
-        }
-        const list = await this.addProductsDataInKotInfo([response]);
-        response.kotData = list;
-        let result = {
-          message: "Kot Created Successfully!",
-          success: true,
-        };
-        await printBilReceipt(response, steward, "kot");
-        return { ...result };
-      } else {
-        let response = {
-          message: "Incorrect steward number!",
-          error: true,
-        };
-        return { ...response };
+      if (response?.billing) {
+        const billingId = response.billing.id;
+        await this.prisma.billing.update({
+          where: { id: billingId },
+          data: { lastVoidBillAt: new Date() },
+        });
       }
+
+      if (response.billing && !billingProcessed) {
+        const tableId = response.table.id;
+        await this.prisma.tables.update({
+          where: { id: tableId },
+          data: { status: "OCCUPIED" },
+        });
+        billingProcessed = true;
+      }
+
+      const list = await this.addProductsDataInKotInfo([response]);
+      response.kotData = list;
+      let result = {
+        message: "Kot Created Successfully!",
+        success: true,
+      };
+      if (itemData?.stewardNo.length) {
+        const steward = await this.findOneByStewardNo(itemData.stewardNo);
+        await printBilReceipt(response, steward, "kot");
+      }
+      return { ...result };
     } catch (error) {
-     
       return error;
     }
   }
@@ -119,9 +114,7 @@ export class KotService {
       });
 
       return kot;
-    } catch (err) {
-      console.debug(err, "Cannot get all kot");
-    }
+    } catch (err) {}
   }
 
   async getAllKots() {

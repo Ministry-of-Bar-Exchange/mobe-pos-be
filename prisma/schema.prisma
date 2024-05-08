@@ -111,9 +111,9 @@ type Payment {
 model Billing {
   id             String     @id @default(auto()) @map("_id") @db.ObjectId
   customerId     String?
-  name           String
-  phone          String
-  billNo         String
+  name           String?
+  phone          String?
+  billNo         String?
   products       Json       @default("[]")
   kotList        Kot[]
   subTotal       Float      @default(0)
@@ -121,13 +121,13 @@ model Billing {
   tax            Float      @default(0)
   netAmount      Float      @default(0)
   status         BillStatus @default(UNSETTLED)
-  tableId        String     @db.ObjectId
+  tableId        String   @db.ObjectId
   table          Tables     @relation(fields: [tableId], references: [id])
   isDeleted      Boolean    @default(false)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
-  foodDiscount   Float      @default(0)
-  barDiscount    Float      @default(0)
+  foodDiscount   Float?     @default(0)
+  barDiscount    Float?     @default(0)
   discountReason String?    @default("")
   billReason     String?    @default("")
   billClosedBy   String?    @default("")
@@ -156,7 +156,7 @@ model Kot {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
   status       KotStatus @default(ORDER_CONFIRMED)
   kotData      KotItem[]
-  kotNo        String
+  kotNo        String?
   modifier     String?
   stewardNo    String?
   billingId    String?   @db.ObjectId

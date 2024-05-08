@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "prisma/prisma.service";
 import { CommonObjectType } from "types";
 import { CreateHostDto } from "./dto/create-host.dto";
@@ -18,11 +18,17 @@ export class HostService {
         const createdHost = await this.prisma.host.create({
           data: createHostDto,
         });
-        const tableId = createHostDto.tableId;
-        if (tableId) {
+        const tableCode = createHostDto.tableCode;
+        if (tableCode) {
+          const findByTableCode = await this.prisma.tables.findFirst({
+            where: { code: tableCode },
+          });
+          if (!findByTableCode) {
+            throw new HttpException("Table not found", 400);
+          }
           const updatedTable = await this.prisma.tables.update({
             where: {
-              id: tableId,
+              id: findByTableCode?.id,
             },
             data: {
               status: "OCCUPIED",

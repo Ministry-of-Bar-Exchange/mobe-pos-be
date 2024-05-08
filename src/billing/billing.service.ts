@@ -11,23 +11,18 @@ export class BillingService {
 
   async create(createBillingDto: any) {
     try {
-      if (!createBillingDto?.stewardNo) {
-        return {
-          message: "Please enter steward number",
-          code: 200,
-          success: false,
-        };
-      }
-      const steward = await this.findOneByStewardNo(
-        createBillingDto?.stewardNo
-      );
+      if (createBillingDto?.stewardNo) {
+        const steward = await this.findOneByStewardNo(
+          createBillingDto?.stewardNo
+        );
 
-      if (!steward) {
-        return {
-          message: "Please enter correct steward number",
-          code: 200,
-          success: false,
-        };
+        if (!steward) {
+          return {
+            message: "Please enter correct steward number",
+            code: 200,
+            success: false,
+          };
+        }
       }
 
       const LastBillingData = await this.prisma.billing.findFirst({
@@ -41,6 +36,7 @@ export class BillingService {
       } else {
         createBillingDto.billNo = `${Number(LastBillingData.billNo) + 1}`;
       }
+
       const user = await this.prisma.user.findFirst({
         where: { id: createBillingDto?.userId },
       });
@@ -49,7 +45,8 @@ export class BillingService {
       });
       const { userId, ...newPayload } = createBillingDto;
       newPayload.dayCloseDate = restuarant?.dayClosingDate;
-      return this.prisma.billing.create({
+
+      return await this.prisma.billing.create({
         data: newPayload,
       });
     } catch (e) {
@@ -249,8 +246,8 @@ export class BillingService {
     };
   }
 
-  findOne(id: string) {
-    return this.prisma.billing.findUnique({
+  async findOne(id: string) {
+    return await this.prisma.billing.findFirst({
       where: {
         id,
       },
@@ -358,9 +355,7 @@ export class BillingService {
         "bill"
       );
       return { ...updatedKot, isPrinted };
-    } catch (error) {
-      console.log("Unable to print bill", error);
-    }
+    } catch (error) {}
   }
 
   async shiftItem(updateBillingDto) {
@@ -405,10 +400,60 @@ export class BillingService {
         },
       });
       if (!tableAlreadyOccupied) {
-        throw new HttpException(
-          `Person at table ${updateBillingDto?.to} has left the bar.`,
-          400
-        );
+        const billingBody = {
+          tableId: toTable?.id,
+          userId: updateBillingDto?.userId,
+        };
+
+        const billingData: any = await this.create(billingBody);
+
+        const updatedKotData = updateBillingDto.kotData.map((obj) => {
+          const { kotId, ...rest } = obj;
+          return rest;
+        });
+        const kotBody = {
+          kotData: updatedKotData,
+          billingId: billingData?.id,
+          tableId: billingData?.tableId,
+          userId: updateBillingDto?.userId,
+        };
+
+        const data = await this.kotService.createKot(kotBody);
+
+        const kotInfo = await this.prisma.kot.findMany({
+          where: {
+            billingId: billingFromShift?.id,
+          },
+        });
+
+        const deletedData = [];
+
+        if (kotInfo.length > 0) {
+          for (const kot of kotInfo) {
+            kot.kotData = kot.kotData.filter((kotItem) => {
+              const isDeleted = updateBillingDto.kotData.some((updateItem) => {
+                if (updateItem.productId === kotItem.productId) {
+                  deletedData.push(kotItem);
+                  return true;
+                }
+                return false;
+              });
+
+              return !isDeleted;
+            });
+
+            await this.prisma.kot.update({
+              where: {
+                id: kot.id,
+              },
+              data: {
+                kotData: kot.kotData,
+              },
+            });
+          }
+        }
+        const status = "Item shifted sucessfully";
+        return { status };
       }
 
       const kotInfo = await this.prisma.kot.findMany({
@@ -522,12 +567,14 @@ export class BillingService {
           tableId: toTable?.id,
         },
       });
+
       const hostToUpdate = await this.prisma.host.findFirst({
         where: {
-          tableCode: updateBillingDto?.from,
+          tableCode: `${updateBillingDto?.from}`,
           status: false,
         },
       });
+
       if (hostToUpdate) {
         await this.prisma.host.update({
           where: { id: hostToUpdate?.id },
