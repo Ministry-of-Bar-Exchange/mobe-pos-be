@@ -7,7 +7,7 @@ import { CommonObjectType } from "types";
 
 @Injectable()
 export class BillingService {
-  constructor(private prisma: PrismaService, private kotService: KotService) {}
+  constructor(private prisma: PrismaService, private kotService: KotService) { }
 
   async create(createBillingDto: any) {
     try {
@@ -184,6 +184,10 @@ export class BillingService {
       todaySale += Number(item?.netAmount) || 0;
     });
 
+    const unsettledData = unsettledPrintedData?.filter((item: any) => {
+      return item?.netAmount;
+    });
+
     const kotBillData = await this.prisma.billing.findMany({
       where: {
         dayCloseDate: formattedDate,
@@ -235,8 +239,24 @@ export class BillingService {
     );
     let unbilled = 0;
     duplicatedProducts?.map((item: any) => {
-      unbilled += Number(item?.price);
+      const price = Number(item?.price);
+      const taxRate = Number(item?.tax) / 100;
+
+      const taxAmount = price * taxRate;
+      unbilled += price + taxAmount;
     });
+
+    unsettledData?.forEach((unsettledBill: any) => {
+      unbilled += unsettledBill.netAmount;
+    });
+    const decimalPart = unbilled - Math.floor(unbilled);
+
+    if (decimalPart > 0.5) {
+      unbilled = Math.ceil(unbilled);
+    } else {
+      unbilled = Math.floor(unbilled);
+    }
+
     const totalSaleData = todaySale + unbilled;
     return {
       cashSale,
@@ -355,7 +375,7 @@ export class BillingService {
         "bill"
       );
       return { ...updatedKot, isPrinted };
-    } catch (error) {}
+    } catch (error) { }
   }
 
   async shiftItem(updateBillingDto) {
